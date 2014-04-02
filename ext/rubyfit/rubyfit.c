@@ -409,7 +409,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 
 	if(RSTRING_LEN(str) == 0) {
 		//sprintf(err_msg, "Passed in string with length of 0!");
-		pass_message(err_msg);
+		//pass_message(err_msg);
 		return Qnil;
 	}
 
@@ -538,7 +538,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 
 	if (convert_return == FIT_CONVERT_ERROR) {
 		//sprintf(err_msg, "Error decoding file.\n");
-		pass_message(err_msg);
+		//pass_message(err_msg);
 		//fclose(file);
 		return Qnil;
 	}
@@ -552,14 +552,14 @@ static VALUE parse(VALUE self, VALUE original_str) {
 
 	if (convert_return == FIT_CONVERT_PROTOCOL_VERSION_NOT_SUPPORTED) {
 		//sprintf(err_msg, "Protocol version not supported.\n");
-		pass_message(err_msg);
+		//pass_message(err_msg);
 		//fclose(file);
 		return Qnil;
 	}
 
 	if (convert_return == FIT_CONVERT_END_OF_FILE) {
 		//sprintf(err_msg, "File converted successfully.\n");
-		pass_message(err_msg);
+		//pass_message(err_msg);
 	}
 
 	return Qnil;
