@@ -1,4 +1,4 @@
 source "http://rubygems.org"
 
-# Specify your gem's dependencies in rubyfit.gemspec
+# Specify your gem's dependencies in rubyfitkm.gemspec
 gemspec

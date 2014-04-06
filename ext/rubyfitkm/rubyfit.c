@@ -19,7 +19,7 @@
 
 #include "fit_convert.h"
 
-VALUE mRubyFit;
+VALUE mRubyFitKM;
 VALUE cFitParser;
 VALUE cFitHandler;
 VALUE cFitHandlerPrintFun;
@@ -347,7 +347,7 @@ static void pass_device_info(const FIT_DEVICE_INFO_MESG *mesg) {
 		rb_hash_aset(rh, rb_str_new2("battery_voltage"), UINT2NUM(mesg->battery_voltage));
 	if(mesg->device_index != FIT_DEVICE_INDEX_INVALID)
 		rb_hash_aset(rh, rb_str_new2("device_index"), UINT2NUM(mesg->device_index));
-	if(mesg->device_type != FIT_DEVICE_TYPE_INVALID)
+	if(mesg->device_type != FIT_UINT8_INVALID)
 		rb_hash_aset(rh, rb_str_new2("device_type"), UINT2NUM(mesg->device_type));
 	if(mesg->hardware_version != FIT_UINT8_INVALID)
 		rb_hash_aset(rh, rb_str_new2("hardware_version"), UINT2NUM(mesg->hardware_version));
@@ -565,9 +565,9 @@ static VALUE parse(VALUE self, VALUE original_str) {
 	return Qnil;
 }
 
-void Init_rubyfit() {
-        mRubyFit = rb_define_module("RubyFit");
-        cFitParser = rb_define_class_under(mRubyFit, "FitParser", rb_cObject);
+void Init_rubyfitkm() {
+        mRubyFitKM = rb_define_module("RubyFitKM");
+        cFitParser = rb_define_class_under(mRubyFitKM, "FitParser", rb_cObject);
 
 	//instance methods
 	rb_define_method(cFitParser, "initialize", init, 1);
