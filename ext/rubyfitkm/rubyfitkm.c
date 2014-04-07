@@ -19,6 +19,7 @@
 
 #include "fit_convert.h"
 
+
 VALUE mRubyFitKM;
 VALUE cFitParser;
 VALUE cFitHandler;
@@ -32,6 +33,8 @@ VALUE cFitHandlerUserProfileFun;
 VALUE cFitHandlerEventFun;
 VALUE cFitHandlerWeightScaleInfoFun;
 static ID HANDLER_ATTR;
+
+
 /*
  * garmin/dynastream, decided to pinch pennies on bits by tinkering with well
  * established time offsets.  This is the magic number of seconds needed to add
@@ -41,14 +44,21 @@ static ID HANDLER_ATTR;
 const long GARMIN_TIME_OFFSET = 631065600;
 
 
-void pass_message(char *msg) {
+static void pass_message(char *msg) {
 	rb_funcall(cFitHandler, cFitHandlerPrintFun, 1, rb_str_new2(msg));
 }
+
 
 static VALUE fit_pos_to_rb(FIT_SINT32 pos) {
 	float tmp = pos * (180.0 / pow(2,31));
 	tmp -= (tmp > 180.0 ? 360.0 : 0.0);
 	return rb_float_new(tmp);
+}
+
+
+static void save_message(VALUE rh, void *raw_mesg, long raw_length, void *cooked_mesg, long cooked_length) {
+    rb_hash_aset(rh, rb_str_new2("raw_mesg"), rb_str_new((char *)raw_mesg, raw_length));
+    rb_hash_aset(rh, rb_str_new2("cooked_mesg"), rb_str_new((char *)cooked_mesg, cooked_length));
 }
 
 
@@ -70,7 +80,7 @@ static VALUE init(VALUE self, VALUE handler) {
 	return Qnil;
 }
 
-static void pass_activity(const FIT_ACTIVITY_MESG *mesg) {
+static void pass_activity(const FIT_ACTIVITY_MESG *mesg, void *raw_mesg, long raw_length) {
 	VALUE rh = rb_hash_new();
 
 	if(mesg->timestamp != FIT_DATE_TIME_INVALID)
@@ -90,10 +100,12 @@ static void pass_activity(const FIT_ACTIVITY_MESG *mesg) {
 	if(mesg->event_group != FIT_UINT8_INVALID)
 		rb_hash_aset(rh, rb_str_new2("event_group"), UINT2NUM(mesg->event_group));
 
+    save_message(rh, raw_mesg, raw_length, (void *)mesg, (long)sizeof(*mesg));
 	rb_funcall(cFitHandler, cFitHandlerActivityFun, 1, rh);
 }
 
-static void pass_record(const FIT_RECORD_MESG *mesg) {
+
+static void pass_record(const FIT_RECORD_MESG *mesg, void *raw_mesg, long raw_length) {
 	VALUE rh = rb_hash_new();
 
 	if(mesg->timestamp != FIT_DATE_TIME_INVALID)
@@ -128,7 +140,8 @@ static void pass_record(const FIT_RECORD_MESG *mesg) {
 	rb_funcall(cFitHandler, cFitHandlerRecordFun, 1, rh);
 }
 
-static void pass_lap(const FIT_LAP_MESG *mesg) {
+
+static void pass_lap(const FIT_LAP_MESG *mesg, void *raw_mesg, long raw_length) {
 	VALUE rh = rb_hash_new();
 
 	if(mesg->timestamp != FIT_DATE_TIME_INVALID)
@@ -193,7 +206,8 @@ static void pass_lap(const FIT_LAP_MESG *mesg) {
 	rb_funcall(cFitHandler, cFitHandlerLapFun, 1, rh);
 }
 
-static void pass_session(const FIT_SESSION_MESG *mesg) {
+
+static void pass_session(const FIT_SESSION_MESG *mesg, void *raw_mesg, long raw_length) {
 	VALUE rh = rb_hash_new();
 
 	if(mesg->timestamp != FIT_DATE_TIME_INVALID)
@@ -266,7 +280,8 @@ static void pass_session(const FIT_SESSION_MESG *mesg) {
 	rb_funcall(cFitHandler, cFitHandlerSessionFun, 1, rh);
 }
 
-static void pass_user_profile(const FIT_USER_PROFILE_MESG *mesg) {
+
+static void pass_user_profile(const FIT_USER_PROFILE_MESG *mesg, void *raw_mesg, long raw_length) {
 	VALUE rh = rb_hash_new();
 
         if(mesg->friendly_name != FIT_STRING_INVALID)
@@ -311,7 +326,8 @@ static void pass_user_profile(const FIT_USER_PROFILE_MESG *mesg) {
 	rb_funcall(cFitHandler, cFitHandlerUserProfileFun, 1, rh);
 }
 
-static void pass_event(const FIT_EVENT_MESG *mesg) {
+
+static void pass_event(const FIT_EVENT_MESG *mesg, void *raw_mesg, long raw_length) {
 	VALUE rh = rb_hash_new();
 
 	if(mesg->timestamp != FIT_DATE_TIME_INVALID)
@@ -330,7 +346,8 @@ static void pass_event(const FIT_EVENT_MESG *mesg) {
 	rb_funcall(cFitHandler, cFitHandlerEventFun, 1, rh);
 }
 
-static void pass_device_info(const FIT_DEVICE_INFO_MESG *mesg) {
+
+static void pass_device_info(const FIT_DEVICE_INFO_MESG *mesg, void *raw_mesg, long raw_length) {
 	VALUE rh = rb_hash_new();
 
 	if(mesg->timestamp != FIT_DATE_TIME_INVALID)
@@ -357,7 +374,8 @@ static void pass_device_info(const FIT_DEVICE_INFO_MESG *mesg) {
 	rb_funcall(cFitHandler, cFitHandlerDeviceInfoFun, 1, rh);
 }
 
-static void pass_weight_scale_info(const FIT_WEIGHT_SCALE_MESG *mesg) {
+
+static void pass_weight_scale_info(const FIT_WEIGHT_SCALE_MESG *mesg, void *raw_mesg, long raw_length) {
 	VALUE rh = rb_hash_new();
 
 	if(mesg->timestamp != FIT_DATE_TIME_INVALID)
@@ -388,6 +406,7 @@ static void pass_weight_scale_info(const FIT_WEIGHT_SCALE_MESG *mesg) {
 	rb_funcall(cFitHandler, cFitHandlerWeightScaleInfoFun, 1, rh);
 }
 
+
 static VALUE parse(VALUE self, VALUE original_str) {
 	int i = 0;
 	VALUE str = StringValue(original_str);
@@ -397,6 +416,8 @@ static VALUE parse(VALUE self, VALUE original_str) {
 	FIT_UINT8 buf[8];
 	FIT_CONVERT_RETURN convert_return = FIT_CONVERT_CONTINUE;
 	FIT_UINT32 buf_size;
+    void *raw_data;
+    long raw_length;
 #if defined(FIT_CONVERT_MULTI_THREAD)
 	FIT_CONVERT_STATE state;
 #endif
@@ -412,6 +433,8 @@ static VALUE parse(VALUE self, VALUE original_str) {
 		//pass_message(err_msg);
 		return Qnil;
 	}
+
+    raw_data = p;
 
 	while(i < RSTRING_LEN(str) && (convert_return == FIT_CONVERT_CONTINUE)) {
 		for(buf_size=0;(buf_size < sizeof(buf)) && (p != NULL); buf_size++) {
@@ -429,6 +452,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 
 			switch(convert_return) {
 				case FIT_CONVERT_MESSAGE_AVAILABLE: {
+                    raw_length = (long)(p - (char *)raw_data);
 #if defined(FIT_CONVERT_MULTI_THREAD)
 					const FIT_UINT8 *mesg = FitConvert_GetMessageData(&state);
 					FIT_UINT16 mesg_num = FitConvert_GetMessageNumber(&state);
@@ -449,7 +473,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 							const FIT_USER_PROFILE_MESG *user_profile = (FIT_USER_PROFILE_MESG *) mesg;
 							//sprintf(err_msg, "User Profile: weight=%0.1fkg\n", user_profile->weight / 10.0f);
 							//pass_message(err_msg);
-							pass_user_profile(user_profile);
+							pass_user_profile(user_profile, raw_data, raw_length);
 							break;
 						}
 
@@ -457,7 +481,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 							const FIT_ACTIVITY_MESG *activity = (FIT_ACTIVITY_MESG *) mesg;
 							//sprintf(err_msg, "Activity: timestamp=%u, type=%u, event=%u, event_type=%u, num_sessions=%u\n", activity->timestamp, activity->type, activity->event, activity->event_type, activity->num_sessions);
 							//pass_message(err_msg);
-							pass_activity(activity);
+							pass_activity(activity, raw_data, raw_length);
 
 							{
 								FIT_ACTIVITY_MESG old_mesg;
@@ -477,7 +501,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 							const FIT_SESSION_MESG *session = (FIT_SESSION_MESG *) mesg;
 							//sprintf(err_msg, "Session: timestamp=%u\n", session->timestamp);
 							//pass_message(err_msg);
-							pass_session(session);
+							pass_session(session, raw_data, raw_length);
 							break;
 						}
 
@@ -485,7 +509,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 							const FIT_LAP_MESG *lap = (FIT_LAP_MESG *) mesg;
 							//sprintf(err_msg, "Lap: timestamp=%u, total_ascent=%u, total_distance=%f\n", lap->timestamp, lap->total_ascent, (lap->total_distance / 100.0) / 1000.0 * 0.621371192);
 							//pass_message(err_msg);
-							pass_lap(lap);
+							pass_lap(lap, raw_data, raw_length);
 							break;
 						}
 
@@ -494,7 +518,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 
 							//sprintf(err_msg, "Record: timestamp=%u", record->timestamp);
 							//pass_message(err_msg);
-							pass_record(record);
+							pass_record(record, raw_data, raw_length);
 							break;
 						}
 
@@ -502,7 +526,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 							const FIT_EVENT_MESG *event = (FIT_EVENT_MESG *) mesg;
 							//sprintf(err_msg, "Event: timestamp=%u, event_type = %i\n", event->timestamp, event->event_type);
 							//pass_message(err_msg);
-							pass_event(event);
+							pass_event(event, raw_data, raw_length);
 							break;
 						}
 
@@ -510,7 +534,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 							const FIT_DEVICE_INFO_MESG *device_info = (FIT_DEVICE_INFO_MESG *) mesg;
 							//sprintf(err_msg, "Device Info: timestamp=%u, battery_status=%u\n", (unsigned int)device_info->timestamp, device_info->battery_voltage);
 							//pass_message(err_msg);
-							pass_device_info(device_info);
+							pass_device_info(device_info, raw_data, raw_length);
 							break;
 						}
 
@@ -518,7 +542,7 @@ static VALUE parse(VALUE self, VALUE original_str) {
 							const FIT_WEIGHT_SCALE_MESG *weight_scale_info = (FIT_WEIGHT_SCALE_MESG *) mesg;
 							//sprintf(err_msg, "Device Info: timestamp=%u, battery_status=%u\n", (unsigned int)device_info->timestamp, device_info->battery_voltage);
 							//pass_message(err_msg);
-							pass_weight_scale_info(weight_scale_info);
+							pass_weight_scale_info(weight_scale_info, raw_data, raw_length);
 							break;
 						}
 
@@ -528,6 +552,8 @@ static VALUE parse(VALUE self, VALUE original_str) {
 							break;
 						}
 					}
+
+                    raw_data = p;
 					break;
 				}
 				default:
@@ -565,9 +591,10 @@ static VALUE parse(VALUE self, VALUE original_str) {
 	return Qnil;
 }
 
+
 void Init_rubyfitkm() {
-        mRubyFitKM = rb_define_module("RubyFitKM");
-        cFitParser = rb_define_class_under(mRubyFitKM, "FitParser", rb_cObject);
+    mRubyFitKM = rb_define_module("RubyFitKM");
+    cFitParser = rb_define_class_under(mRubyFitKM, "FitParser", rb_cObject);
 
 	//instance methods
 	rb_define_method(cFitParser, "initialize", init, 1);
