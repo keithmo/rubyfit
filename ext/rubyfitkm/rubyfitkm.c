@@ -68,6 +68,7 @@ VALUE cPadFun;
 VALUE cSlaveDeviceFun;
 VALUE cCadenceZoneFun;
 VALUE cMemoGlobFun;
+VALUE cUnknownFun;
 
 static ID HANDLER_ATTR;
 
@@ -128,6 +129,7 @@ static VALUE init(VALUE self, VALUE handler) {
 	cSlaveDeviceFun = rb_intern("on_slave_device");
 	cCadenceZoneFun = rb_intern("on_cadence_zone");
 	cMemoGlobFun = rb_intern("on_memo_glob");
+    cUnknownFun = rb_intern("on_unknown");
 
 	return Qnil;
 }
@@ -1308,6 +1310,20 @@ static void pass_cadence_zone(FIT_CADENCE_ZONE_MESG *mesg) {
 }
 
 
+static void pass_unknown(FIT_UINT16 mesg_num, const FIT_UINT8 *mesg) {
+    if (!rb_respond_to(cFitHandler, cUnknownFun)) {
+        return;
+    }
+
+    VALUE rh = rb_hash_new();
+
+    rb_hash_aset(rh, rb_str_new2("mesg_num"), UINT2NUM(mesg_num));
+    rb_hash_aset(rh, rb_str_new2("raw_mesg"), rb_str_new(mesg, FIT_MESG_SIZE));
+
+    rb_funcall(cFitHandler, cUnknownFun, 1, rh);
+}
+
+
 static int validate_header(void *buffer, long length) {
     FIT_FILE_HDR *header = (FIT_FILE_HDR *)buffer;
 
@@ -1473,9 +1489,11 @@ static void process_mesg(FIT_UINT16 mesg_num, const FIT_UINT8 *mesg) {
             pass_monitoring_info((FIT_MONITORING_INFO_MESG *)mesg);
             break;
 
+#if 0
         case FIT_MESG_NUM_PAD:
-            // NYI pass_pad((FIT_PAD_MESG *)mesg);
+            pass_pad((FIT_PAD_MESG *)mesg);
             break;
+#endif
 
         case FIT_MESG_NUM_SLAVE_DEVICE:
             pass_slave_device((FIT_SLAVE_DEVICE_MESG *)mesg);
@@ -1485,8 +1503,14 @@ static void process_mesg(FIT_UINT16 mesg_num, const FIT_UINT8 *mesg) {
             pass_cadence_zone((FIT_CADENCE_ZONE_MESG *)mesg);
             break;
 
+#if 0
         case FIT_MESG_NUM_MEMO_GLOB:
-            // NYI pass_memo_glob((FIT_MEMO_GLOB_MESG *)mesg);
+            pass_memo_glob((FIT_MEMO_GLOB_MESG *)mesg);
+            break;
+#endif
+
+        default:
+            pass_unknown(mesg_num, mesg);
             break;
     }
 }
