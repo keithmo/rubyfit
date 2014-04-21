@@ -853,7 +853,6 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
     if (mesg->device_index != FIT_DEVICE_INDEX_INVALID)
         rb_hash_aset(rh, rb_str_new2("device_index"), UINT2NUM(mesg->device_index));
     
-
     rb_funcall(cFitHandler, cRecordFun, 1, rh);
 }
 
