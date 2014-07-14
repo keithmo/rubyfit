@@ -73,6 +73,58 @@ VALUE cUnknownFun;
 static ID HANDLER_ATTR;
 
 
+#define CONCAT2(a,b) a ## b
+#define CONCAT(a,b) CONCAT2(a,b)
+#define DIM(x) (sizeof(x) / sizeof((x)[0]))
+
+typedef struct {
+    unsigned int id;
+    const char *name;
+} ID_MAP;
+#define MAP(suffix, name) { CONCAT(PREFIX,suffix), (name) }
+
+typedef struct {
+    ID_MAP *map;
+    size_t count;
+} ID_MAPS;
+
+#include "mappers.h"
+
+int compare_map(const void *aa, const void *bb)
+{
+    const ID_MAP *a = (const ID_MAP *)aa;
+    const ID_MAP *b = (const ID_MAP *)bb;
+
+    if (a->id == b->id)
+        return 0;
+    else if (a->id < b->id)
+        return -1;
+    else
+        return 1;
+}
+
+const char *id_to_name(ID_MAP *map, size_t count, int id)
+{
+    ID_MAP key;
+    ID_MAP *found;
+
+    key.id = id;
+    found = bsearch(&key, map, count, sizeof(ID_MAP), &compare_map);
+
+    return (found == NULL) ? NULL : found->name;
+}
+
+void init_maps()
+{
+    size_t i;
+
+    for (i = 0 ; i < DIM(maps) ; i++) {
+        qsort(maps[i].map, maps[i].count, sizeof(ID_MAP), compare_map);
+    }
+}
+
+
+
 static void pass_file_id(FIT_FILE_ID_MESG *mesg) {
     if (!rb_respond_to(cFitHandler, cFileIdFun)) {
         return;
@@ -1718,6 +1770,8 @@ static VALUE init(VALUE self, VALUE handler) {
 
 
 void Init_rubyfitkm() {
+    init_maps();
+
     mRubyFitKM = rb_define_module("RubyFitKM");
     cFitParser = rb_define_class_under(mRubyFitKM, "FitParser", rb_cObject);
 
