@@ -1335,11 +1335,11 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("time_from_course"), rb_float_new(mesg->time_from_course / 1000.0));
     }
 
-    if (mesg->total_cycles != FIT_UINT16_INVALID) {
+    if (mesg->total_cycles != FIT_UINT32_INVALID) {
         rb_hash_aset(rh, rb_str_new2("total_cycles"), UINT2NUM(mesg->total_cycles));
     }
 
-    if (mesg->accumulated_power != FIT_UINT16_INVALID) {
+    if (mesg->accumulated_power != FIT_UINT32_INVALID) {
         rb_hash_aset(rh, rb_str_new2("accumulated_power"), UINT2NUM(mesg->accumulated_power));
     }
 
