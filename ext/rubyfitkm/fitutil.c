@@ -55,6 +55,20 @@ VALUE fit_uint8_array_to_rb_int_array(FIT_UINT8 *data, long length) {
 }
 
 
+VALUE fit_sint8_array_to_rb_int_array(FIT_SINT8 *data, long length) {
+    VALUE ra = rb_ary_new();
+    int i;
+
+    for (i = 0 ; i < length ; i++) {
+        if (data[i] != FIT_SINT8_INVALID) {
+            rb_ary_store(ra, i, UINT2NUM(data[i]));
+        }
+    }
+
+    return ra;
+}
+
+
 VALUE fit_uint8z_array_to_rb_int_array(FIT_UINT8Z *data, long length) {
     VALUE ra = rb_ary_new();
     int i;

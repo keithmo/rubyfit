@@ -199,11 +199,21 @@ static void pass_device_settings(FIT_DEVICE_SETTINGS_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->utc_offset != FIT_UINT32_INVALID) {
         rb_hash_aset(rh, rb_str_new2("utc_offset"), UINT2NUM(mesg->utc_offset));
     }
 
+    if (mesg->active_time_zone != FIT_UINT8_INVALID) {
+        hash_set(rh, mapped_ids, "active_time_zone", UINT2NUM(mesg->active_time_zone), ID_TO_NAME(map_time_zone, mesg->active_time_zone));
+    }
+
+    if (mesg->time_zone_offset[0] != FIT_SINT8_INVALID) {
+        rb_hash_aset(rh, rb_str_new2("time_zone_offset"), fit_sint8_array_to_rb_int_array(mesg->time_zone_offset, DIM(mesg->time_zone_offset)));
+    }
+
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cDeviceSettingsFun, 1, rh);
 }
 
