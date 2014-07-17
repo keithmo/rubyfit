@@ -28,7 +28,7 @@ csv.each do |line|
             comma = ",\n"
         end
     else
-        if line[1] == 'enum' || line[0] == 'manufacturer' || line[0] == 'garmin_product' || line[0] == 'antplus_device_type' || line[0] == 'battery_status'
+        if line[1] == 'enum' || line[0] == 'manufacturer' || line[0] == 'garmin_product' || line[0] == 'antplus_device_type' || line[0] == 'battery_status' || line[0] == 'mesg_num'
             base_name = line[0]
             in_enum = true
             comma = ""

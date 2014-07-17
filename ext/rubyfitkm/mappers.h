@@ -19,6 +19,54 @@ ID_MAP map_file[] = {
 };
 
 #undef PREFIX
+#define PREFIX FIT_MESG_NUM_
+ID_MAP map_mesg_num[] = {
+    MAP(FILE_ID, "file_id"),
+    MAP(CAPABILITIES, "capabilities"),
+    MAP(DEVICE_SETTINGS, "device_settings"),
+    MAP(USER_PROFILE, "user_profile"),
+    MAP(HRM_PROFILE, "hrm_profile"),
+    MAP(SDM_PROFILE, "sdm_profile"),
+    MAP(BIKE_PROFILE, "bike_profile"),
+    MAP(ZONES_TARGET, "zones_target"),
+    MAP(HR_ZONE, "hr_zone"),
+    MAP(POWER_ZONE, "power_zone"),
+    MAP(MET_ZONE, "met_zone"),
+    MAP(SPORT, "sport"),
+    MAP(GOAL, "goal"),
+    MAP(SESSION, "session"),
+    MAP(LAP, "lap"),
+    MAP(RECORD, "record"),
+    MAP(EVENT, "event"),
+    MAP(DEVICE_INFO, "device_info"),
+    MAP(WORKOUT, "workout"),
+    MAP(WORKOUT_STEP, "workout_step"),
+    MAP(SCHEDULE, "schedule"),
+    MAP(WEIGHT_SCALE, "weight_scale"),
+    MAP(COURSE, "course"),
+    MAP(COURSE_POINT, "course_point"),
+    MAP(TOTALS, "totals"),
+    MAP(ACTIVITY, "activity"),
+    MAP(SOFTWARE, "software"),
+    MAP(FILE_CAPABILITIES, "file_capabilities"),
+    MAP(MESG_CAPABILITIES, "mesg_capabilities"),
+    MAP(FIELD_CAPABILITIES, "field_capabilities"),
+    MAP(FILE_CREATOR, "file_creator"),
+    MAP(BLOOD_PRESSURE, "blood_pressure"),
+    MAP(SPEED_ZONE, "speed_zone"),
+    MAP(MONITORING, "monitoring"),
+    MAP(HRV, "hrv"),
+    MAP(LENGTH, "length"),
+    MAP(MONITORING_INFO, "monitoring_info"),
+    MAP(PAD, "pad"),
+    MAP(SLAVE_DEVICE, "slave_device"),
+    MAP(CADENCE_ZONE, "cadence_zone"),
+    MAP(MEMO_GLOB, "memo_glob"),
+    MAP(MFG_RANGE_MIN, "mfg_range_min"),
+    MAP(MFG_RANGE_MAX, "mfg_range_max")
+};
+
+#undef PREFIX
 #define PREFIX FIT_MESG_COUNT_
 ID_MAP map_mesg_count[] = {
     MAP(NUM_PER_FILE, "num_per_file"),
@@ -901,6 +949,7 @@ ID_MAP map_source_type[] = {
 
 ID_MAPS maps[] = {
     { map_file, DIM(map_file) },
+    { map_mesg_num, DIM(map_mesg_num) },
     { map_mesg_count, DIM(map_mesg_count) },
     { map_gender, DIM(map_gender) },
     { map_language, DIM(map_language) },
