@@ -84,7 +84,7 @@ typedef struct {
     size_t count;
 } ID_MAPS;
 
-#define IS_GARMIN(mfg)  ((mfg) == FIT_MANUFACTURER_GARMIN || (mft) == FIT_MANUFACTURER_GARMIN_FR405_ANTFS) 
+#define IS_GARMIN(mfg)  ((mfg) == FIT_MANUFACTURER_GARMIN || (mfg) == FIT_MANUFACTURER_GARMIN_FR405_ANTFS) 
 
 #include "mappers.h"
 
@@ -151,7 +151,7 @@ static void pass_file_id(FIT_FILE_ID_MESG *mesg) {
     }
 
     if (mesg->product != FIT_UINT16_INVALID) {
-        hash_set(rh, mapped_ids, "manufacturer", UINT2NUM(mesg->product),
+        hash_set(rh, mapped_ids, "product", UINT2NUM(mesg->product),
             IS_GARMIN(mesg->manufacturer)
                 ? ID_TO_NAME(map_garmin_product, mesg->product)
                 : NULL);
@@ -214,6 +214,7 @@ static void pass_user_profile(FIT_USER_PROFILE_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->friendly_name[0] != FIT_STRING_INVALID) {
         rb_hash_aset(rh, rb_str_new2("friendly_name"), rb_str_new2(mesg->friendly_name));
@@ -232,7 +233,7 @@ static void pass_user_profile(FIT_USER_PROFILE_MESG *mesg) {
     }
 
     if (mesg->gender != FIT_GENDER_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("gender"), UINT2NUM(mesg->gender));
+        hash_set(rh, mapped_ids, "gender", UINT2NUM(mesg->gender), ID_TO_NAME(map_gender, mesg->gender));
     }
 
     if (mesg->age != FIT_UINT8_INVALID) {
@@ -244,15 +245,15 @@ static void pass_user_profile(FIT_USER_PROFILE_MESG *mesg) {
     }
 
     if (mesg->language != FIT_LANGUAGE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("language"), UINT2NUM(mesg->language));
+        hash_set(rh, mapped_ids, "language", UINT2NUM(mesg->language), ID_TO_NAME(map_language, mesg->language));
     }
 
     if (mesg->elev_setting != FIT_DISPLAY_MEASURE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("elev_setting"), UINT2NUM(mesg->elev_setting));
+        hash_set(rh, mapped_ids, "elev_setting", UINT2NUM(mesg->elev_setting), ID_TO_NAME(map_display_measure, mesg->elev_setting));
     }
 
     if (mesg->weight_setting != FIT_DISPLAY_MEASURE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("weight_setting"), UINT2NUM(mesg->weight_setting));
+        hash_set(rh, mapped_ids, "weight_setting", UINT2NUM(mesg->weight_setting), ID_TO_NAME(map_display_measure, mesg->weight_setting));
     }
 
     if (mesg->resting_heart_rate != FIT_UINT8_INVALID) {
@@ -272,39 +273,40 @@ static void pass_user_profile(FIT_USER_PROFILE_MESG *mesg) {
     }
 
     if (mesg->hr_setting != FIT_DISPLAY_HEART_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("hr_setting"), UINT2NUM(mesg->hr_setting));
+        hash_set(rh, mapped_ids, "hr_setting", UINT2NUM(mesg->hr_setting), ID_TO_NAME(map_display_heart, mesg->hr_setting));
     }
 
     if (mesg->speed_setting != FIT_DISPLAY_MEASURE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("speed_setting"), UINT2NUM(mesg->speed_setting));
+        hash_set(rh, mapped_ids, "speed_setting", UINT2NUM(mesg->speed_setting), ID_TO_NAME(map_display_measure, mesg->speed_setting));
     }
 
     if (mesg->dist_setting != FIT_DISPLAY_MEASURE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("dist_setting"), UINT2NUM(mesg->dist_setting));
+        hash_set(rh, mapped_ids, "dist_setting", UINT2NUM(mesg->dist_setting), ID_TO_NAME(map_display_measure, mesg->dist_setting));
     }
 
     if (mesg->power_setting != FIT_DISPLAY_POWER_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("power_setting"), UINT2NUM(mesg->power_setting));
+        hash_set(rh, mapped_ids, "power_setting", UINT2NUM(mesg->power_setting), ID_TO_NAME(map_display_power, mesg->power_setting));
     }
 
     if (mesg->activity_class != FIT_ACTIVITY_CLASS_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("activity_class"), UINT2NUM(mesg->activity_class));
+        hash_set(rh, mapped_ids, "activity_class", UINT2NUM(mesg->activity_class), ID_TO_NAME(map_activity_class, mesg->activity_class));
     }
 
     if (mesg->position_setting != FIT_DISPLAY_POSITION_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("position_setting"), UINT2NUM(mesg->position_setting));
+        hash_set(rh, mapped_ids, "position_setting", UINT2NUM(mesg->position_setting), ID_TO_NAME(map_display_position, mesg->position_setting));
     }
 
     if (mesg->temperature_setting != FIT_DISPLAY_POSITION_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("temperature_setting"), UINT2NUM(mesg->temperature_setting));
+        hash_set(rh, mapped_ids, "temperature_setting", UINT2NUM(mesg->temperature_setting), ID_TO_NAME(map_display_position, mesg->temperature_setting));
     }
 
     rb_hash_aset(rh, rb_str_new2("global_id"), fit_uint8_array_to_rb_int_array(mesg->global_id, DIM(mesg->global_id)));
 
     if (mesg->height_setting != FIT_DISPLAY_MEASURE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("height_setting"), UINT2NUM(mesg->height_setting));
+        hash_set(rh, mapped_ids, "height_setting", UINT2NUM(mesg->height_setting), ID_TO_NAME(map_display_measure, mesg->height_setting));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cUserProfileFun, 1, rh);
 }
 
@@ -391,6 +393,7 @@ static void pass_bike_profile(FIT_BIKE_PROFILE_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->name[0] != FIT_STRING_INVALID) {
         rb_hash_aset(rh, rb_str_new2("name"), rb_str_new2(mesg->name));
@@ -437,11 +440,11 @@ static void pass_bike_profile(FIT_BIKE_PROFILE_MESG *mesg) {
     }
 
     if (mesg->sport != FIT_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sport"), UINT2NUM(mesg->sport));
+        hash_set(rh, mapped_ids, "sport", UINT2NUM(mesg->sport), ID_TO_NAME(map_sport, mesg->sport));
     }
 
     if (mesg->sub_sport != FIT_SUB_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sub_sport"), UINT2NUM(mesg->sub_sport));
+        hash_set(rh, mapped_ids, "sub_sport", UINT2NUM(mesg->sub_sport), ID_TO_NAME(map_sub_sport, mesg->sub_sport));
     }
 
     if (mesg->auto_wheel_cal != FIT_BOOL_INVALID) {
@@ -501,13 +504,14 @@ static void pass_bike_profile(FIT_BIKE_PROFILE_MESG *mesg) {
     }
 
     if (mesg->front_gear_num != FIT_UINT8Z_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("front_gear"), fit_uint8z_array_to_rb_int_array(mesg->front_gear, (long)mesg->front_gear_num);
+        rb_hash_aset(rh, rb_str_new2("front_gear"), fit_uint8z_array_to_rb_int_array(mesg->front_gear, (long)mesg->front_gear_num));
     }
 
     if (mesg->rear_gear_num != FIT_UINT8Z_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("rear_gear"), fit_uint8z_array_to_rb_int_array(mesg->rear_gear, (long)mesg->rear_gear_num);
+        rb_hash_aset(rh, rb_str_new2("rear_gear"), fit_uint8z_array_to_rb_int_array(mesg->rear_gear, (long)mesg->rear_gear_num));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cBikeProfileFun, 1, rh);
 }
 
@@ -518,6 +522,7 @@ static void pass_zones_target(FIT_ZONES_TARGET_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->functional_threshold_power != FIT_UINT16_INVALID) {
         rb_hash_aset(rh, rb_str_new2("functional_threshold_power"), UINT2NUM(mesg->functional_threshold_power));
@@ -532,13 +537,14 @@ static void pass_zones_target(FIT_ZONES_TARGET_MESG *mesg) {
     }
 
     if (mesg->hr_calc_type != FIT_HR_ZONE_CALC_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("hr_calc_type"), UINT2NUM(mesg->hr_calc_type));
+        hash_set(rh, mapped_ids, "hr_calc_type", UINT2NUM(mesg->hr_calc_type), ID_TO_NAME(map_hr_zone_calc, mesg->hr_calc_type));
     }
 
     if (mesg->pwr_calc_type != FIT_PWR_ZONE_CALC_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("pwr_calc_type"), UINT2NUM(mesg->pwr_calc_type));
+        hash_set(rh, mapped_ids, "pwr_calc_type", UINT2NUM(mesg->pwr_calc_type), ID_TO_NAME(map_pwr_zone_calc, mesg->pwr_calc_type));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cZonesTargetFun, 1, rh);
 }
 
@@ -622,19 +628,21 @@ static void pass_sport(FIT_SPORT_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->name[0] != FIT_STRING_INVALID) {
         rb_hash_aset(rh, rb_str_new2("name"), rb_str_new2(mesg->name));
     }
 
     if (mesg->sport != FIT_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sport"), UINT2NUM(mesg->sport));
+        hash_set(rh, mapped_ids, "sport", UINT2NUM(mesg->sport), ID_TO_NAME(map_sport, mesg->sport));
     }
 
     if (mesg->sub_sport != FIT_SUB_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sub_sport"), UINT2NUM(mesg->sub_sport));
+        hash_set(rh, mapped_ids, "sub_sport", UINT2NUM(mesg->sub_sport), ID_TO_NAME(map_sub_sport, mesg->sub_sport));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cSportFun, 1, rh);
 }
 
@@ -645,6 +653,7 @@ static void pass_goal(FIT_GOAL_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->start_date != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("start_date"), fit_time_to_rb(mesg->start_date));
@@ -671,15 +680,15 @@ static void pass_goal(FIT_GOAL_MESG *mesg) {
     }
 
     if (mesg->sport != FIT_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sport"), UINT2NUM(mesg->sport));
+        hash_set(rh, mapped_ids, "sport", UINT2NUM(mesg->sport), ID_TO_NAME(map_sport, mesg->sport));
     }
 
     if (mesg->sub_sport != FIT_SUB_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sub_sport"), UINT2NUM(mesg->sub_sport));
+        hash_set(rh, mapped_ids, "sub_sport", UINT2NUM(mesg->sub_sport), ID_TO_NAME(map_sub_sport, mesg->sub_sport));
     }
 
     if (mesg->type != FIT_GOAL_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("type"), UINT2NUM(mesg->type));
+        hash_set(rh, mapped_ids, "type", UINT2NUM(mesg->type), ID_TO_NAME(map_goal, mesg->type));
     }
 
     if (mesg->repeat != FIT_BOOL_INVALID) {
@@ -687,13 +696,14 @@ static void pass_goal(FIT_GOAL_MESG *mesg) {
     }
 
     if (mesg->recurrence != FIT_GOAL_RECURRENCE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("recurrence"), UINT2NUM(mesg->recurrence));
+        hash_set(rh, mapped_ids, "recurrence", UINT2NUM(mesg->recurrence), ID_TO_NAME(map_goal_recurrence, mesg->recurrence));
     }
 
     if (mesg->enabled != FIT_BOOL_INVALID) {
         rb_hash_aset(rh, rb_str_new2("enabled"), fit_bool_to_rb_bool(mesg->enabled));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cGoalFun, 1, rh);
 }
 
@@ -704,6 +714,7 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
@@ -932,19 +943,19 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
     }
 
     if (mesg->event != FIT_EVENT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event"), UINT2NUM(mesg->event));
+        hash_set(rh, mapped_ids, "event", UINT2NUM(mesg->event), ID_TO_NAME(map_event, mesg->event));
     }
 
     if (mesg->event_type != FIT_EVENT_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event_type"), UINT2NUM(mesg->event_type));
+        hash_set(rh, mapped_ids, "event_type", UINT2NUM(mesg->event_type), ID_TO_NAME(map_event_type, mesg->event_type));
     }
 
     if (mesg->sport != FIT_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sport"), UINT2NUM(mesg->sport));
+        hash_set(rh, mapped_ids, "sport", UINT2NUM(mesg->sport), ID_TO_NAME(map_sport, mesg->sport));
     }
 
     if (mesg->sub_sport != FIT_SUB_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sub_sport"), UINT2NUM(mesg->sub_sport));
+        hash_set(rh, mapped_ids, "sub_sport", UINT2NUM(mesg->sub_sport), ID_TO_NAME(map_sub_sport, mesg->sub_sport));
     }
 
     if (mesg->avg_heart_rate != FIT_UINT8_INVALID) {
@@ -972,15 +983,15 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
     }
 
     if (mesg->trigger != FIT_SESSION_TRIGGER_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("trigger"), UINT2NUM(mesg->trigger));
+        hash_set(rh, mapped_ids, "trigger", UINT2NUM(mesg->trigger), ID_TO_NAME(map_session_trigger, mesg->trigger));
     }
 
     if (mesg->swim_stroke != FIT_SWIM_STROKE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("swim_stroke"), UINT2NUM(mesg->swim_stroke));
+        hash_set(rh, mapped_ids, "swim_stroke", UINT2NUM(mesg->swim_stroke), ID_TO_NAME(map_swim_stroke, mesg->swim_stroke));
     }
 
     if (mesg->pool_length_unit != FIT_DISPLAY_MEASURE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("pool_length_unit"), UINT2NUM(mesg->pool_length_unit));
+        hash_set(rh, mapped_ids, "pool_length_unit", UINT2NUM(mesg->pool_length_unit), ID_TO_NAME(map_display_measure, mesg->pool_length_unit));
     }
 
     if (mesg->gps_accuracy != FIT_UINT8_INVALID) {
@@ -1015,6 +1026,7 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("total_fractional_cycles"), rb_float_new(mesg->total_fractional_cycles / 128.0));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cSessionFun, 1, rh);
 }
 
@@ -1025,6 +1037,7 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
@@ -1218,11 +1231,11 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
     rb_hash_aset(rh, rb_str_new2("max_saturated_hemoglobin_percent"), fit_uint16_array_to_rb_float_array(mesg->max_saturated_hemoglobin_percent, DIM(mesg->max_saturated_hemoglobin_percent), 10.0));
 
     if (mesg->event != FIT_EVENT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event"), UINT2NUM(mesg->event));
+        hash_set(rh, mapped_ids, "event", UINT2NUM(mesg->event), ID_TO_NAME(map_event, mesg->event));
     }
 
     if (mesg->event_type != FIT_EVENT_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event_type"), UINT2NUM(mesg->event_type));
+        hash_set(rh, mapped_ids, "event_type", UINT2NUM(mesg->event_type), ID_TO_NAME(map_event_type, mesg->event_type));
     }
 
     if (mesg->avg_heart_rate != FIT_UINT8_INVALID) {
@@ -1242,15 +1255,15 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
     }
 
     if (mesg->intensity != FIT_INTENSITY_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("intensity"), UINT2NUM(mesg->intensity));
+        hash_set(rh, mapped_ids, "intensity", UINT2NUM(mesg->intensity), ID_TO_NAME(map_intensity, mesg->intensity));
     }
 
     if (mesg->lap_trigger != FIT_LAP_TRIGGER_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("lap_trigger"), UINT2NUM(mesg->lap_trigger));
+        hash_set(rh, mapped_ids, "lap_trigger", UINT2NUM(mesg->lap_trigger), ID_TO_NAME(map_lap_trigger, mesg->lap_trigger));
     }
 
     if (mesg->sport != FIT_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sport"), UINT2NUM(mesg->sport));
+        hash_set(rh, mapped_ids, "sport", UINT2NUM(mesg->sport), ID_TO_NAME(map_sport, mesg->sport));
     }
 
     if (mesg->event_group != FIT_UINT8_INVALID) {
@@ -1258,11 +1271,11 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
     }
 
     if (mesg->swim_stroke != FIT_SWIM_STROKE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("swim_stroke"), UINT2NUM(mesg->swim_stroke));
+        hash_set(rh, mapped_ids, "swim_stroke", UINT2NUM(mesg->swim_stroke), ID_TO_NAME(map_swim_stroke, mesg->swim_stroke));
     }
 
     if (mesg->sub_sport != FIT_SUB_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sub_sport"), UINT2NUM(mesg->sub_sport));
+        hash_set(rh, mapped_ids, "sub_sport", UINT2NUM(mesg->sub_sport), ID_TO_NAME(map_sub_sport, mesg->sub_sport));
     }
 
     if (mesg->gps_accuracy != FIT_UINT8_INVALID) {
@@ -1289,6 +1302,7 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("total_fractional_cycles"), rb_float_new(mesg->total_fractional_cycles / 128.0));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cLapFun, 1, rh);
 }
 
@@ -1299,6 +1313,7 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
@@ -1439,7 +1454,7 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
     }
 
     if (mesg->activity_type != FIT_ACTIVITY_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("activity_type"), UINT2NUM(mesg->activity_type));
+        hash_set(rh, mapped_ids, "activity_type", UINT2NUM(mesg->activity_type), ID_TO_NAME(map_activity_type, mesg->activity_type));
     }
 
     if (mesg->left_torque_effectiveness != FIT_UINT8_INVALID) {
@@ -1467,7 +1482,7 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
     }
 
     if (mesg->stroke_type != FIT_STROKE_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("stroke_type"), UINT2NUM(mesg->stroke_type));
+        hash_set(rh, mapped_ids, "stroke_type", UINT2NUM(mesg->stroke_type), ID_TO_NAME(map_stroke_type, mesg->stroke_type));
     }
 
     if (mesg->zone != FIT_UINT8_INVALID) {
@@ -1478,6 +1493,7 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("device_index"), UINT2NUM(mesg->device_index));
     }
     
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cRecordFun, 1, rh);
 }
 
@@ -1511,13 +1527,11 @@ static void pass_event(FIT_EVENT_MESG *mesg) {
     }
 
     if (mesg->event != FIT_EVENT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event"), UINT2NUM(mesg->event));
-        hash_aset_if_not_null(mapped_ids, "event", ID_TO_NAME(map_event, mesg->event));
+        hash_set(rh, mapped_ids, "event", UINT2NUM(mesg->event), ID_TO_NAME(map_event, mesg->event));
     }
 
     if (mesg->event_type != FIT_EVENT_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event_type"), UINT2NUM(mesg->event_type));
-        hash_aset_if_not_null(mapped_ids, "event_type", ID_TO_NAME(map_event_type, mesg->event_type));
+        hash_set(rh, mapped_ids, "event_type", UINT2NUM(mesg->event_type), ID_TO_NAME(map_event_type, mesg->event_type));
     }
 
     if (mesg->event_group != FIT_UINT8_INVALID) {
@@ -1525,11 +1539,11 @@ static void pass_event(FIT_EVENT_MESG *mesg) {
     }
 
     if (mesg->front_gear_num != FIT_UINT8Z_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("front_gear"), fit_uint8z_array_to_rb_int_array(mesg->front_gear, (long)mesg->front_gear_num);
+        rb_hash_aset(rh, rb_str_new2("front_gear"), fit_uint8z_array_to_rb_int_array(mesg->front_gear, (long)mesg->front_gear_num));
     }
 
     if (mesg->rear_gear_num != FIT_UINT8Z_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("rear_gear"), fit_uint8z_array_to_rb_int_array(mesg->rear_gear, (long)mesg->rear_gear_num);
+        rb_hash_aset(rh, rb_str_new2("rear_gear"), fit_uint8z_array_to_rb_int_array(mesg->rear_gear, (long)mesg->rear_gear_num));
     }
 
     rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
@@ -1559,16 +1573,14 @@ static void pass_device_info(FIT_DEVICE_INFO_MESG *mesg) {
     }
 
     if (mesg->manufacturer != FIT_MANUFACTURER_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("manufacturer"), UINT2NUM(mesg->manufacturer));
-        hash_aset_if_not_null(mapped_ids, "manufacturer", ID_TO_NAME(map_manufacturer, mesg->manufacturer));
+        hash_set(rh, mapped_ids, "manufacturer", UINT2NUM(mesg->manufacturer), ID_TO_NAME(map_manufacturer, mesg->manufacturer));
     }
 
     if (mesg->product != FIT_UINT16_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("product"), UINT2NUM(mesg->product));
-
-        if (mesg->manufacturer == FIT_MANUFACTURER_GARMIN || mesg->manufacturer == FIT_MANUFACTURER_GARMIN_FR405_ANTFS) {
-            hash_aset_if_not_null(mapped_ids, "product", ID_TO_NAME(map_garmin_product, mesg->product));
-        }
+        hash_set(rh, mapped_ids, "product", UINT2NUM(mesg->product),
+            IS_GARMIN(mesg->manufacturer)
+                ? ID_TO_NAME(map_garmin_product, mesg->product)
+                : NULL);
     }
 
     if (mesg->software_version != FIT_UINT16_INVALID) {
@@ -1584,8 +1596,7 @@ static void pass_device_info(FIT_DEVICE_INFO_MESG *mesg) {
     }
 
     if (mesg->device_type != FIT_UINT8_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("device_type"), UINT2NUM(mesg->device_type));
-        hash_aset_if_not_null(mapped_ids, "device_type", ID_TO_NAME(map_antplus_device_type, mesg->device_type));
+        hash_set(rh, mapped_ids, "device_type", UINT2NUM(mesg->device_type), ID_TO_NAME(map_antplus_device_type, mesg->device_type));
     }
 
     if (mesg->hardware_version != FIT_UINT8_INVALID) {
@@ -1593,13 +1604,11 @@ static void pass_device_info(FIT_DEVICE_INFO_MESG *mesg) {
     }
 
     if (mesg->battery_status != FIT_BATTERY_STATUS_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("battery_status"), UINT2NUM(mesg->battery_status));
-        hash_aset_if_not_null(mapped_ids, "battery_status", ID_TO_NAME(map_battery_status, mesg->battery_status));
+        hash_set(rh, mapped_ids, "battery_status", UINT2NUM(mesg->battery_status), ID_TO_NAME(map_battery_status, mesg->battery_status));
     }
 
     if (mesg->sensor_position != FIT_BODY_LOCATION_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sensor_position"), UINT2NUM(mesg->sensor_position));
-        hash_aset_if_not_null(mapped_ids, "sensor_position", ID_TO_NAME(map_body_location, mesg->sensor_position));
+        hash_set(rh, mapped_ids, "sensor_position", UINT2NUM(mesg->sensor_position), ID_TO_NAME(map_body_location, mesg->sensor_position));
     }
 
     if (mesg->descriptor[0] != FIT_STRING_INVALID) {
@@ -1611,12 +1620,11 @@ static void pass_device_info(FIT_DEVICE_INFO_MESG *mesg) {
     }
 
     if (mesg->ant_network != FIT_ANT_NETWORK_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("ant_network"), UINT2NUM(mesg->ant_network));
+        hash_set(rh, mapped_ids, "ant_network", UINT2NUM(mesg->ant_network), ID_TO_NAME(map_ant_network, mesg->ant_network));
     }
 
     if (mesg->source_type != FIT_SOURCE_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("source_type"), UINT2NUM(mesg->source_type));
-        hash_aset_if_not_null(mapped_ids, "source_type", ID_TO_NAME(map_source_type, mesg->source_type));
+        hash_set(rh, mapped_ids, "source_type", UINT2NUM(mesg->source_type), ID_TO_NAME(map_source_type, mesg->source_type));
     }
 
     rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
@@ -1630,6 +1638,7 @@ static void pass_workout(FIT_WORKOUT_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->capabilities != FIT_WORKOUT_CAPABILITIES_INVALID) {
         rb_hash_aset(rh, rb_str_new2("capabilities"), UINT2NUM(mesg->capabilities));
@@ -1644,9 +1653,10 @@ static void pass_workout(FIT_WORKOUT_MESG *mesg) {
     }
 
     if (mesg->sport != FIT_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sport"), UINT2NUM(mesg->sport));
+        hash_set(rh, mapped_ids, "sport", UINT2NUM(mesg->sport), ID_TO_NAME(map_sport, mesg->sport));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cWorkoutFun, 1, rh);
 }
 
@@ -1657,6 +1667,7 @@ static void pass_workout_step(FIT_WORKOUT_STEP_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->wkt_step_name[0] != FIT_STRING_INVALID) {
         rb_hash_aset(rh, rb_str_new2("wkt_step_name"), rb_str_new2(mesg->wkt_step_name));
@@ -1683,17 +1694,18 @@ static void pass_workout_step(FIT_WORKOUT_STEP_MESG *mesg) {
     }
 
     if (mesg->duration_type != FIT_WKT_STEP_DURATION_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("duration_type"), UINT2NUM(mesg->duration_type));
+        hash_set(rh, mapped_ids, "duration_type", UINT2NUM(mesg->duration_type), ID_TO_NAME(map_wkt_step_duration, mesg->duration_type));
     }
 
     if (mesg->target_type != FIT_WKT_STEP_TARGET_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("target_type"), UINT2NUM(mesg->target_type));
+        hash_set(rh, mapped_ids, "target_type", UINT2NUM(mesg->target_type), ID_TO_NAME(map_wkt_step_target, mesg->target_type));
     }
 
     if (mesg->intensity != FIT_INTENSITY_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("intensity"), UINT2NUM(mesg->intensity));
+        hash_set(rh, mapped_ids, "intensity", UINT2NUM(mesg->intensity), ID_TO_NAME(map_intensity, mesg->intensity));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cWorkoutStepFun, 1, rh);
 }
 
@@ -1704,6 +1716,7 @@ static void pass_schedule(FIT_SCHEDULE_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->serial_number != FIT_UINT32Z_INVALID) {
         rb_hash_aset(rh, rb_str_new2("serial_number"), UINT2NUM(mesg->serial_number));
@@ -1718,11 +1731,14 @@ static void pass_schedule(FIT_SCHEDULE_MESG *mesg) {
     }
 
     if (mesg->manufacturer != FIT_MANUFACTURER_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("manufacturer"), UINT2NUM(mesg->manufacturer));
+        hash_set(rh, mapped_ids, "manufacturer", UINT2NUM(mesg->manufacturer), ID_TO_NAME(map_manufacturer, mesg->manufacturer));
     }
 
     if (mesg->product != FIT_UINT16_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("product"), UINT2NUM(mesg->product));
+        hash_set(rh, mapped_ids, "product", UINT2NUM(mesg->product),
+            IS_GARMIN(mesg->manufacturer)
+                ? ID_TO_NAME(map_garmin_product, mesg->product)
+                : NULL);
     }
 
     if (mesg->completed != FIT_BOOL_INVALID) {
@@ -1730,9 +1746,10 @@ static void pass_schedule(FIT_SCHEDULE_MESG *mesg) {
     }
 
     if (mesg->type != FIT_SCHEDULE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("type"), UINT2NUM(mesg->type));
+        hash_set(rh, mapped_ids, "type", UINT2NUM(mesg->type), ID_TO_NAME(map_schedule, mesg->type));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cScheduleFun, 1, rh);
 }
 
@@ -1806,6 +1823,7 @@ static void pass_course(FIT_COURSE_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->name[0] != FIT_STRING_INVALID) {
         rb_hash_aset(rh, rb_str_new2("name"), rb_str_new2(mesg->name));
@@ -1816,9 +1834,10 @@ static void pass_course(FIT_COURSE_MESG *mesg) {
     }
 
     if (mesg->sport != FIT_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sport"), UINT2NUM(mesg->sport));
+        hash_set(rh, mapped_ids, "sport", UINT2NUM(mesg->sport), ID_TO_NAME(map_sport, mesg->sport));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cCourseFun, 1, rh);
 }
 
@@ -1829,6 +1848,7 @@ static void pass_course_point(FIT_COURSE_POINT_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
@@ -1855,9 +1875,10 @@ static void pass_course_point(FIT_COURSE_POINT_MESG *mesg) {
     }
 
     if (mesg->type != FIT_COURSE_POINT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("type"), UINT2NUM(mesg->type));
+        hash_set(rh, mapped_ids, "type", UINT2NUM(mesg->type), ID_TO_NAME(map_course_point, mesg->type));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cCoursePointFun, 1, rh);
 }
 
@@ -1868,6 +1889,7 @@ static void pass_totals(FIT_TOTALS_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
@@ -1902,9 +1924,10 @@ static void pass_totals(FIT_TOTALS_MESG *mesg) {
     }
 
     if (mesg->sport != FIT_SPORT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("sport"), UINT2NUM(mesg->sport));
+        hash_set(rh, mapped_ids, "sport", UINT2NUM(mesg->sport), ID_TO_NAME(map_sport, mesg->sport));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cTotalsFun, 1, rh);
 }
 
@@ -1934,18 +1957,15 @@ static void pass_activity(FIT_ACTIVITY_MESG *mesg) {
     }
 
     if (mesg->type != FIT_ACTIVITY_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("type"), UINT2NUM(mesg->type));
-        hash_aset_if_not_null(mapped_ids, "type", ID_TO_NAME(map_activity, mesg->type));
+        hash_set(rh, mapped_ids, "type", UINT2NUM(mesg->type), ID_TO_NAME(map_activity, mesg->type));
     }
 
     if (mesg->event != FIT_EVENT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event"), UINT2NUM(mesg->event));
-        hash_aset_if_not_null(mapped_ids, "event", ID_TO_NAME(map_event, mesg->event));
+        hash_set(rh, mapped_ids, "event", UINT2NUM(mesg->event), ID_TO_NAME(map_event, mesg->event));
     }
 
     if (mesg->event_type != FIT_EVENT_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event_type"), UINT2NUM(mesg->event_type));
-        hash_aset_if_not_null(mapped_ids, "event_type", ID_TO_NAME(map_event_type, mesg->event_type));
+        hash_set(rh, mapped_ids, "event_type", UINT2NUM(mesg->event_type), ID_TO_NAME(map_event_type, mesg->event_type));
     }
 
     if (mesg->event_group != FIT_UINT8_INVALID) {
@@ -1986,6 +2006,7 @@ static void pass_file_capabilities(FIT_FILE_CAPABILITIES_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->directory[0] != FIT_STRING_INVALID) {
         rb_hash_aset(rh, rb_str_new2("directory"), rb_str_new2(mesg->directory));
@@ -2004,13 +2025,14 @@ static void pass_file_capabilities(FIT_FILE_CAPABILITIES_MESG *mesg) {
     }
 
     if (mesg->type != FIT_FILE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("type"), UINT2NUM(mesg->type));
+        hash_set(rh, mapped_ids, "type", UINT2NUM(mesg->type), ID_TO_NAME(map_file, mesg->type));
     }
 
     if (mesg->flags != FIT_FILE_FLAGS_INVALID) {
         rb_hash_aset(rh, rb_str_new2("flags"), UINT2NUM(mesg->flags));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cFileCapabilitiesFun, 1, rh);
 }
 
@@ -2021,6 +2043,7 @@ static void pass_mesg_capabilities(FIT_MESG_CAPABILITIES_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->message_index != FIT_MESSAGE_INDEX_INVALID) {
         rb_hash_aset(rh, rb_str_new2("message_index"), UINT2NUM(mesg->message_index));
@@ -2035,13 +2058,14 @@ static void pass_mesg_capabilities(FIT_MESG_CAPABILITIES_MESG *mesg) {
     }
     
     if (mesg->file != FIT_FILE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("file"), UINT2NUM(mesg->file));
+        hash_set(rh, mapped_ids, "file", UINT2NUM(mesg->file), ID_TO_NAME(map_file, mesg->file));
     }
     
     if (mesg->count_type != FIT_MESG_COUNT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("count_type"), UINT2NUM(mesg->count_type));
+        hash_set(rh, mapped_ids, "count_type", UINT2NUM(mesg->count_type), ID_TO_NAME(map_mesg_count, mesg->count_type));
     }
     
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cMesgCapabilitiesFun, 1, rh);
 }
 
@@ -2052,6 +2076,7 @@ static void pass_field_capabilities(FIT_FIELD_CAPABILITIES_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->message_index != FIT_MESSAGE_INDEX_INVALID) {
         rb_hash_aset(rh, rb_str_new2("message_index"), UINT2NUM(mesg->message_index));
@@ -2066,13 +2091,14 @@ static void pass_field_capabilities(FIT_FIELD_CAPABILITIES_MESG *mesg) {
     }
 
     if (mesg->file != FIT_FILE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("file"), UINT2NUM(mesg->file));
+        hash_set(rh, mapped_ids, "file", UINT2NUM(mesg->file), ID_TO_NAME(map_file, mesg->file));
     }
 
     if (mesg->field_num != FIT_UINT8_INVALID) {
         rb_hash_aset(rh, rb_str_new2("field_num"), UINT2NUM(mesg->field_num));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cFieldCapabilitiesFun, 1, rh);
 }
 
@@ -2102,6 +2128,7 @@ static void pass_blood_pressure(FIT_BLOOD_PRESSURE_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
@@ -2140,13 +2167,14 @@ static void pass_blood_pressure(FIT_BLOOD_PRESSURE_MESG *mesg) {
     }
 
     if (mesg->heart_rate_type != FIT_HR_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("heart_rate_type"), UINT2NUM(mesg->heart_rate_type));
+        hash_set(rh, mapped_ids, "heart_rate_type", UINT2NUM(mesg->heart_rate_type), ID_TO_NAME(map_hr_type, mesg->heart_rate_type));
     }
 
     if (mesg->status != FIT_BP_STATUS_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("status"), UINT2NUM(mesg->status));
+        hash_set(rh, mapped_ids, "status", UINT2NUM(mesg->status), ID_TO_NAME(map_bp_status, mesg->status));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cBloodPressureFun, 1, rh);
 }
 
@@ -2180,6 +2208,7 @@ static void pass_monitoring(FIT_MONITORING_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
@@ -2222,13 +2251,14 @@ static void pass_monitoring(FIT_MONITORING_MESG *mesg) {
     }
 
     if (mesg->activity_type != FIT_ACTIVITY_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("activity_type"), UINT2NUM(mesg->activity_type));
+        hash_set(rh, mapped_ids, "activity_type", UINT2NUM(mesg->activity_type), ID_TO_NAME(map_activity_type, mesg->activity_type));
     }
 
     if (mesg->activity_subtype != FIT_ACTIVITY_SUBTYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("activity_subtype"), UINT2NUM(mesg->activity_subtype));
+        hash_set(rh, mapped_ids, "activity_subtype", UINT2NUM(mesg->activity_subtype), ID_TO_NAME(map_activity_subtype, mesg->activity_subtype));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cMonitoringFun, 1, rh);
 }
 
@@ -2252,6 +2282,7 @@ static void pass_length(FIT_LENGTH_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
@@ -2297,15 +2328,15 @@ static void pass_length(FIT_LENGTH_MESG *mesg) {
     rb_hash_aset(rh, rb_str_new2("zone_count"), fit_uint16_array_to_rb_int_array(mesg->zone_count, DIM(mesg->zone_count)));
 
     if (mesg->event != FIT_EVENT_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event"), UINT2NUM(mesg->event));
+        hash_set(rh, mapped_ids, "event", UINT2NUM(mesg->event), ID_TO_NAME(map_event, mesg->event));
     }
 
     if (mesg->event_type != FIT_EVENT_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("event_type"), UINT2NUM(mesg->event_type));
+        hash_set(rh, mapped_ids, "event_type", UINT2NUM(mesg->event_type), ID_TO_NAME(map_event_type, mesg->event_type));
     }
 
     if (mesg->swim_stroke != FIT_SWIM_STROKE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("swim_stroke"), UINT2NUM(mesg->swim_stroke));
+        hash_set(rh, mapped_ids, "swim_stroke", UINT2NUM(mesg->swim_stroke), ID_TO_NAME(map_swim_stroke, mesg->swim_stroke));
     }
 
     if (mesg->avg_swimming_cadence != FIT_UINT8_INVALID) {
@@ -2317,9 +2348,10 @@ static void pass_length(FIT_LENGTH_MESG *mesg) {
     }
 
     if (mesg->length_type != FIT_LENGTH_TYPE_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("length_type"), UINT2NUM(mesg->length_type));
+        hash_set(rh, mapped_ids, "length_type", UINT2NUM(mesg->length_type), ID_TO_NAME(map_length_type, mesg->length_type));
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cLengthFun, 1, rh);
 }
 
@@ -2349,15 +2381,20 @@ static void pass_slave_device(FIT_SLAVE_DEVICE_MESG *mesg) {
     }
 
     VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
 
     if (mesg->manufacturer != FIT_MANUFACTURER_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("manufacturer"), UINT2NUM(mesg->manufacturer));
+        hash_set(rh, mapped_ids, "manufacturer", UINT2NUM(mesg->manufacturer), ID_TO_NAME(map_manufacturer, mesg->manufacturer));
     }
 
     if (mesg->product != FIT_UINT16_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("product"), UINT2NUM(mesg->product));
+        hash_set(rh, mapped_ids, "product", UINT2NUM(mesg->product),
+            IS_GARMIN(mesg->manufacturer)
+                ? ID_TO_NAME(map_garmin_product, mesg->product)
+                : NULL);
     }
 
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
     rb_funcall(cFitHandler, cSlaveDeviceFun, 1, rh);
 }
 
