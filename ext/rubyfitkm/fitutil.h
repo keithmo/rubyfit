@@ -23,6 +23,14 @@
 #define DIM(x) (sizeof(x)/sizeof(x[0]))
 
 
+//
+// C preprocessor games to properly concatentate two symbols.
+//
+
+#define CONCAT2(a,b) a ## b
+#define CONCAT(a,b) CONCAT2(a,b)
+
+
 int fit_validate_header(void *buffer, long length);
 VALUE fit_pos_to_rb(FIT_SINT32 pos);
 VALUE fit_time_to_rb(FIT_UINT32 fit_time);
