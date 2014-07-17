@@ -2060,7 +2060,7 @@ static void pass_mesg_capabilities(FIT_MESG_CAPABILITIES_MESG *mesg) {
     }
     
     if (mesg->mesg_num != FIT_MESG_NUM_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("mesg_num"), UINT2NUM(mesg->mesg_num));
+        hash_set(rh, mapped_ids, "mesg_num", UINT2NUM(mesg->mesg_num), ID_TO_NAME(map_mesg_num, mesg->mesg_num));
     }
     
     if (mesg->count != FIT_UINT16_INVALID) {
@@ -2093,7 +2093,7 @@ static void pass_field_capabilities(FIT_FIELD_CAPABILITIES_MESG *mesg) {
     }
 
     if (mesg->mesg_num != FIT_MESG_NUM_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("mesg_num"), UINT2NUM(mesg->mesg_num));
+        hash_set(rh, mapped_ids, "mesg_num", UINT2NUM(mesg->mesg_num), ID_TO_NAME(map_mesg_num, mesg->mesg_num));
     }
 
     if (mesg->count != FIT_UINT16_INVALID) {
