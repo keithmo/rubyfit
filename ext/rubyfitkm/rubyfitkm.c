@@ -2432,6 +2432,26 @@ static void pass_cadence_zone(FIT_CADENCE_ZONE_MESG *mesg) {
 }
 
 
+static void pass_pad(FIT_PAD_MESG_DEF *mesg) {
+    if (!rb_respond_to(cFitHandler, cPadFun)) {
+        return;
+    }
+
+    VALUE rh = rb_hash_new();
+    VALUE mapped_ids = rb_hash_new();
+
+    rb_hash_aset(rh, rb_str_new2("reserved_1"), UINT2NUM(mesg->reserved_1));
+    hash_set(rh, mapped_ids, "arch", UINT2NUM(mesg->arch),
+        (mesg->arch == 0) ? "little_endian" : "big_endian"
+        );
+    hash_set(rh, mapped_ids, "global_mesg_num", UINT2NUM(mesg->global_mesg_num), MAPID(map_mesg_num, mesg->global_mesg_num));
+    rb_hash_aset(rh, rb_str_new2("num_fields"), UINT2NUM(mesg->num_fields));
+
+    rb_hash_aset(rh, rb_str_new2("mapped_ids"), mapped_ids);
+    rb_funcall(cFitHandler, cUnknownFun, 1, rh);
+}
+
+
 static void pass_unknown(FIT_UINT16 mesg_num, const FIT_UINT8 *mesg) {
     if (!rb_respond_to(cFitHandler, cUnknownFun)) {
         return;
@@ -2604,19 +2624,19 @@ static void process_mesg(FIT_UINT16 mesg_num, const FIT_UINT8 *mesg) {
             pass_cadence_zone((FIT_CADENCE_ZONE_MESG *)mesg);
             break;
 
-#if 0
         case FIT_MESG_NUM_PAD:
-            pass_pad((FIT_PAD_MESG *)mesg);
+            pass_pad((FIT_PAD_MESG_DEF *)mesg);
             break;
-
-        case FIT_MESG_NUM_MEMO_GLOB:
-            pass_memo_glob((FIT_MEMO_GLOB_MESG *)mesg);
-            break;
-#endif
 
         default:
             pass_unknown(mesg_num, mesg);
             break;
+
+#if 0
+        case FIT_MESG_NUM_MEMO_GLOB:
+            pass_memo_glob((FIT_MEMO_GLOB_MESG *)mesg);
+            break;
+#endif
     }
 }
 
