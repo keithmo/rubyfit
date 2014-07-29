@@ -34,12 +34,18 @@
 int fit_validate_header(void *buffer, long length);
 VALUE fit_pos_to_rb(FIT_SINT32 pos);
 VALUE fit_time_to_rb(FIT_UINT32 fit_time);
+VALUE fit_time_to_rb_str(FIT_UINT32 fit_time);
+int is_valid_uint8_array(FIT_UINT8 *data, long length);
 VALUE fit_uint8_array_to_rb_int_array(FIT_UINT8 *data, long length);
+int is_valid_sint8_array(FIT_SINT8 *data, long length);
 VALUE fit_sint8_array_to_rb_int_array(FIT_SINT8 *data, long length);
+int is_valid_uint8z_array(FIT_UINT8Z *data, long length);
 VALUE fit_uint8z_array_to_rb_int_array(FIT_UINT8Z *data, long length);
+int is_valid_uint16_array(FIT_UINT16 *data, long length);
 VALUE fit_uint16_array_to_rb_int_array(FIT_UINT16 *data, long length);
 VALUE fit_uint8_array_to_rb_float_array(FIT_UINT8 *data, long length, double scale);
 VALUE fit_uint16_array_to_rb_float_array(FIT_UINT16 *data, long length, double scale);
+int is_valid_uint32_array(FIT_UINT32 *data, long length);
 VALUE fit_uint32_array_to_rb_float_array(FIT_UINT32 *data, long length, double scale);
 VALUE fit_bool_to_rb_bool(FIT_BOOL flag);
 

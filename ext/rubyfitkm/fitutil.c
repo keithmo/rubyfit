@@ -1,3 +1,4 @@
+#include "time.h"
 #include "ruby.h"
 #include "ruby/dl.h"
 
@@ -41,6 +42,29 @@ VALUE fit_time_to_rb(FIT_UINT32 fit_time) {
 }
 
 
+VALUE fit_time_to_rb_str(FIT_UINT32 fit_time) {
+    struct tm tm;
+    time_t t;
+    char timestamp[] = "YYYY-MM-ddTHH:mm:ss.SSS+0000";
+
+    t = (time_t)(fit_time + GARMIN_TIME_OFFSET);
+    localtime_r(&t, &tm);
+
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%S.000%z", &tm);
+    return rb_str_new2(timestamp);
+}
+
+
+int is_valid_uint8_array(FIT_UINT8 *data, long length) {
+    while (length--) {
+        if (*data != FIT_UINT8_INVALID) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 VALUE fit_uint8_array_to_rb_int_array(FIT_UINT8 *data, long length) {
     VALUE ra = rb_ary_new();
     int i;
@@ -54,6 +78,16 @@ VALUE fit_uint8_array_to_rb_int_array(FIT_UINT8 *data, long length) {
     return ra;
 }
 
+
+int is_valid_sint8_array(FIT_SINT8 *data, long length) {
+    while (length--) {
+        if (*data != FIT_SINT8_INVALID) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 VALUE fit_sint8_array_to_rb_int_array(FIT_SINT8 *data, long length) {
     VALUE ra = rb_ary_new();
@@ -69,6 +103,16 @@ VALUE fit_sint8_array_to_rb_int_array(FIT_SINT8 *data, long length) {
 }
 
 
+int is_valid_uint8z_array(FIT_UINT8Z *data, long length) {
+    while (length--) {
+        if (*data != FIT_UINT8Z_INVALID) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 VALUE fit_uint8z_array_to_rb_int_array(FIT_UINT8Z *data, long length) {
     VALUE ra = rb_ary_new();
     int i;
@@ -82,6 +126,16 @@ VALUE fit_uint8z_array_to_rb_int_array(FIT_UINT8Z *data, long length) {
     return ra;
 }
 
+
+int is_valid_uint16_array(FIT_UINT16 *data, long length) {
+    while (length--) {
+        if (*data != FIT_UINT16_INVALID) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 VALUE fit_uint16_array_to_rb_int_array(FIT_UINT16 *data, long length) {
     VALUE ra = rb_ary_new();
@@ -124,6 +178,16 @@ VALUE fit_uint16_array_to_rb_float_array(FIT_UINT16 *data, long length, double s
     return ra;
 }
 
+
+int is_valid_uint32_array(FIT_UINT32 *data, long length) {
+    while (length--) {
+        if (*data != FIT_UINT32_INVALID) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 VALUE fit_uint32_array_to_rb_float_array(FIT_UINT32 *data, long length, double scale) {
     VALUE ra = rb_ary_new();

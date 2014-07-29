@@ -143,6 +143,7 @@ static void pass_file_id(FIT_FILE_ID_MESG *mesg) {
 
     if (mesg->time_created != FIT_DATE_TIME_INVALID) {
         hash_set(rh, mapped_ids, "time_created", fit_time_to_rb(mesg->time_created), NULL);
+        rb_hash_aset(rh, rb_str_new2("time_created_str"), fit_time_to_rb_str(mesg->time_created));
     }
 
     if (mesg->manufacturer != FIT_MANUFACTURER_INVALID) {
@@ -177,7 +178,9 @@ static void pass_capabilities(FIT_CAPABILITIES_MESG *mesg) {
 
     VALUE rh = rb_hash_new();
 
-    rb_hash_aset(rh, rb_str_new2("languages"), fit_uint8z_array_to_rb_int_array(mesg->languages, DIM(mesg->languages)));
+    if (is_valid_uint8z_array(mesg->languages, DIM(mesg->languages))) {
+        rb_hash_aset(rh, rb_str_new2("languages"), fit_uint8z_array_to_rb_int_array(mesg->languages, DIM(mesg->languages)));
+    }
 
     if (mesg->workouts_supported != FIT_WORKOUT_CAPABILITIES_INVALID) {
         rb_hash_aset(rh, rb_str_new2("workouts_supported"), UINT2NUM(mesg->workouts_supported));
@@ -187,7 +190,9 @@ static void pass_capabilities(FIT_CAPABILITIES_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("connectivity_supported"), UINT2NUM(mesg->connectivity_supported));
     }
 
-    rb_hash_aset(rh, rb_str_new2("sports"), fit_uint8z_array_to_rb_int_array(mesg->sports, DIM(mesg->sports)));
+    if (is_valid_uint8z_array(mesg->sports, DIM(mesg->sports))) {
+        rb_hash_aset(rh, rb_str_new2("sports"), fit_uint8z_array_to_rb_int_array(mesg->sports, DIM(mesg->sports)));
+    }
 
     rb_funcall(cFitHandler, cCapabilitiesFun, 1, rh);
 }
@@ -209,7 +214,7 @@ static void pass_device_settings(FIT_DEVICE_SETTINGS_MESG *mesg) {
         hash_set(rh, mapped_ids, "active_time_zone", UINT2NUM(mesg->active_time_zone), MAPID(map_time_zone, mesg->active_time_zone));
     }
 
-    if (mesg->time_zone_offset[0] != FIT_SINT8_INVALID) {
+    if (is_valid_sint8_array(mesg->time_zone_offset, DIM(mesg->time_zone_offset))) {
         rb_hash_aset(rh, rb_str_new2("time_zone_offset"), fit_sint8_array_to_rb_int_array(mesg->time_zone_offset, DIM(mesg->time_zone_offset)));
     }
 
@@ -310,7 +315,9 @@ static void pass_user_profile(FIT_USER_PROFILE_MESG *mesg) {
         hash_set(rh, mapped_ids, "temperature_setting", UINT2NUM(mesg->temperature_setting), MAPID(map_display_position, mesg->temperature_setting));
     }
 
-    rb_hash_aset(rh, rb_str_new2("global_id"), fit_uint8_array_to_rb_int_array(mesg->global_id, DIM(mesg->global_id)));
+    if (is_valid_uint8_array(mesg->global_id, DIM(mesg->global_id))) {
+        rb_hash_aset(rh, rb_str_new2("global_id"), fit_uint8_array_to_rb_int_array(mesg->global_id, DIM(mesg->global_id)));
+    }
 
     if (mesg->height_setting != FIT_DISPLAY_MEASURE_INVALID) {
         hash_set(rh, mapped_ids, "height_setting", UINT2NUM(mesg->height_setting), MAPID(map_display_measure, mesg->height_setting));
@@ -667,10 +674,12 @@ static void pass_goal(FIT_GOAL_MESG *mesg) {
 
     if (mesg->start_date != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("start_date"), fit_time_to_rb(mesg->start_date));
+        rb_hash_aset(rh, rb_str_new2("start_date_str"), fit_time_to_rb_str(mesg->start_date));
     }
 
     if (mesg->end_date != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("end_date"), fit_time_to_rb(mesg->end_date));
+        rb_hash_aset(rh, rb_str_new2("end_date_str"), fit_time_to_rb_str(mesg->end_date));
     }
 
     if (mesg->value != FIT_UINT32_INVALID) {
@@ -728,10 +737,12 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->start_time != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("start_time"), fit_time_to_rb(mesg->start_time));
+        rb_hash_aset(rh, rb_str_new2("start_time_str"), fit_time_to_rb_str(mesg->start_time));
     }
 
     if (mesg->start_position_lat != FIT_SINT32_INVALID) {
@@ -786,10 +797,21 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("total_moving_time"), rb_float_new(mesg->total_moving_time / 1000.0));
     }
 
-    rb_hash_aset(rh, rb_str_new2("time_in_hr_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_hr_zone, DIM(mesg->time_in_hr_zone), 1000.0));
-    rb_hash_aset(rh, rb_str_new2("time_in_speed_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_speed_zone, DIM(mesg->time_in_speed_zone), 1000.0));
-    rb_hash_aset(rh, rb_str_new2("time_in_cadence_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_cadence_zone, DIM(mesg->time_in_cadence_zone), 1000.0));
-    rb_hash_aset(rh, rb_str_new2("time_in_power_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_power_zone, DIM(mesg->time_in_power_zone), 1000.0));
+    if (is_valid_uint32_array(mesg->time_in_hr_zone, DIM(mesg->time_in_hr_zone))) {
+        rb_hash_aset(rh, rb_str_new2("time_in_hr_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_hr_zone, DIM(mesg->time_in_hr_zone), 1000.0));
+    }
+
+    if (is_valid_uint32_array(mesg->time_in_speed_zone, DIM(mesg->time_in_speed_zone))) {
+        rb_hash_aset(rh, rb_str_new2("time_in_speed_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_speed_zone, DIM(mesg->time_in_speed_zone), 1000.0));
+    }
+
+    if (is_valid_uint32_array(mesg->time_in_cadence_zone, DIM(mesg->time_in_cadence_zone))) {
+        rb_hash_aset(rh, rb_str_new2("time_in_cadence_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_cadence_zone, DIM(mesg->time_in_cadence_zone), 1000.0));
+    }
+
+    if (is_valid_uint32_array(mesg->time_in_power_zone, DIM(mesg->time_in_power_zone))) {
+        rb_hash_aset(rh, rb_str_new2("time_in_power_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_power_zone, DIM(mesg->time_in_power_zone), 1000.0));
+    }
 
     if (mesg->avg_lap_time != FIT_UINT32_INVALID) {
         rb_hash_aset(rh, rb_str_new2("avg_lap_time"), rb_float_new(mesg->avg_lap_time / 1000.0));
@@ -929,8 +951,13 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("opponent_score"), UINT2NUM(mesg->opponent_score));
     }
 
-    rb_hash_aset(rh, rb_str_new2("stroke_count"), fit_uint16_array_to_rb_int_array(mesg->stroke_count, DIM(mesg->stroke_count)));
-    rb_hash_aset(rh, rb_str_new2("zone_count"), fit_uint16_array_to_rb_int_array(mesg->zone_count, DIM(mesg->zone_count)));
+    if (is_valid_uint16_array(mesg->stroke_count, DIM(mesg->stroke_count))) {
+        rb_hash_aset(rh, rb_str_new2("stroke_count"), fit_uint16_array_to_rb_int_array(mesg->stroke_count, DIM(mesg->stroke_count)));
+    }
+
+    if (is_valid_uint16_array(mesg->zone_count, DIM(mesg->zone_count))) {
+        rb_hash_aset(rh, rb_str_new2("zone_count"), fit_uint16_array_to_rb_int_array(mesg->zone_count, DIM(mesg->zone_count)));
+    }
 
     if (mesg->max_ball_speed != FIT_UINT16_INVALID) {
         rb_hash_aset(rh, rb_str_new2("max_ball_speed"), rb_float_new(mesg->max_ball_speed / 100.0));
@@ -1009,11 +1036,11 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
     }
 
     if (mesg->avg_temperature != FIT_SINT8_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("avg_temperature"), UINT2NUM(mesg->avg_temperature));
+        rb_hash_aset(rh, rb_str_new2("avg_temperature"), INT2NUM(mesg->avg_temperature));
     }
 
     if (mesg->max_temperature != FIT_SINT8_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("max_temperature"), UINT2NUM(mesg->max_temperature));
+        rb_hash_aset(rh, rb_str_new2("max_temperature"), INT2NUM(mesg->max_temperature));
     }
 
     if (mesg->min_heart_rate != FIT_UINT8_INVALID) {
@@ -1051,10 +1078,12 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->start_time != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("start_time"), fit_time_to_rb(mesg->start_time));
+        rb_hash_aset(rh, rb_str_new2("start_time_str"), fit_time_to_rb_str(mesg->start_time));
     }
 
     if (mesg->start_position_lat != FIT_SINT32_INVALID) {
@@ -1097,10 +1126,21 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("total_moving_time"), rb_float_new(mesg->total_moving_time / 1000.0));
     }
 
-    rb_hash_aset(rh, rb_str_new2("time_in_hr_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_hr_zone, DIM(mesg->time_in_hr_zone), 1000.0));
-    rb_hash_aset(rh, rb_str_new2("time_in_speed_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_speed_zone, DIM(mesg->time_in_speed_zone), 1000.0));
-    rb_hash_aset(rh, rb_str_new2("time_in_cadence_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_cadence_zone, DIM(mesg->time_in_cadence_zone), 1000.0));
-    rb_hash_aset(rh, rb_str_new2("time_in_power_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_power_zone, DIM(mesg->time_in_power_zone), 1000.0));
+    if (is_valid_uint32_array(mesg->time_in_hr_zone, DIM(mesg->time_in_hr_zone))) {
+        rb_hash_aset(rh, rb_str_new2("time_in_hr_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_hr_zone, DIM(mesg->time_in_hr_zone), 1000.0));
+    }
+
+    if (is_valid_uint32_array(mesg->time_in_speed_zone, DIM(mesg->time_in_speed_zone))) {
+        rb_hash_aset(rh, rb_str_new2("time_in_speed_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_speed_zone, DIM(mesg->time_in_speed_zone), 1000.0));
+    }
+
+    if (is_valid_uint32_array(mesg->time_in_cadence_zone, DIM(mesg->time_in_cadence_zone))) {
+        rb_hash_aset(rh, rb_str_new2("time_in_cadence_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_cadence_zone, DIM(mesg->time_in_cadence_zone), 1000.0));
+    }
+
+    if (is_valid_uint32_array(mesg->time_in_power_zone, DIM(mesg->time_in_power_zone))) {
+        rb_hash_aset(rh, rb_str_new2("time_in_power_zone"), fit_uint32_array_to_rb_float_array(mesg->time_in_power_zone, DIM(mesg->time_in_power_zone), 1000.0));
+    }
 
     if (mesg->message_index != FIT_MESSAGE_INDEX_INVALID) {
         rb_hash_aset(rh, rb_str_new2("message_index"), UINT2NUM(mesg->message_index));
@@ -1214,8 +1254,13 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("opponent_score"), UINT2NUM(mesg->opponent_score));
     }
     
-    rb_hash_aset(rh, rb_str_new2("stroke_count"), fit_uint16_array_to_rb_int_array(mesg->stroke_count, DIM(mesg->stroke_count)));
-    rb_hash_aset(rh, rb_str_new2("zone_count"), fit_uint16_array_to_rb_int_array(mesg->zone_count, DIM(mesg->zone_count)));
+    if (is_valid_uint16_array(mesg->stroke_count, DIM(mesg->stroke_count))) {
+        rb_hash_aset(rh, rb_str_new2("stroke_count"), fit_uint16_array_to_rb_int_array(mesg->stroke_count, DIM(mesg->stroke_count)));
+    }
+
+    if (is_valid_uint16_array(mesg->zone_count, DIM(mesg->zone_count))) {
+        rb_hash_aset(rh, rb_str_new2("zone_count"), fit_uint16_array_to_rb_int_array(mesg->zone_count, DIM(mesg->zone_count)));
+    }
 
     if (mesg->avg_vertical_oscillation != FIT_UINT16_INVALID) {
         rb_hash_aset(rh, rb_str_new2("avg_vertical_oscillation"), rb_float_new(mesg->avg_vertical_oscillation / 10.0));
@@ -1233,12 +1278,29 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("player_score"), UINT2NUM(mesg->player_score));
     }
 
-    rb_hash_aset(rh, rb_str_new2("avg_total_hemoglobin_conc"), fit_uint16_array_to_rb_float_array(mesg->avg_total_hemoglobin_conc, DIM(mesg->avg_total_hemoglobin_conc), 100.0));
-    rb_hash_aset(rh, rb_str_new2("min_total_hemoglobin_conc"), fit_uint16_array_to_rb_float_array(mesg->min_total_hemoglobin_conc, DIM(mesg->min_total_hemoglobin_conc), 100.0));
-    rb_hash_aset(rh, rb_str_new2("max_total_hemoglobin_conc"), fit_uint16_array_to_rb_float_array(mesg->max_total_hemoglobin_conc, DIM(mesg->max_total_hemoglobin_conc), 100.0));
-    rb_hash_aset(rh, rb_str_new2("avg_saturated_hemoglobin_percent"), fit_uint16_array_to_rb_float_array(mesg->avg_saturated_hemoglobin_percent, DIM(mesg->avg_saturated_hemoglobin_percent), 10.0));
-    rb_hash_aset(rh, rb_str_new2("min_saturated_hemoglobin_percent"), fit_uint16_array_to_rb_float_array(mesg->min_saturated_hemoglobin_percent, DIM(mesg->min_saturated_hemoglobin_percent), 10.0));
-    rb_hash_aset(rh, rb_str_new2("max_saturated_hemoglobin_percent"), fit_uint16_array_to_rb_float_array(mesg->max_saturated_hemoglobin_percent, DIM(mesg->max_saturated_hemoglobin_percent), 10.0));
+    if (is_valid_uint16_array(mesg->avg_total_hemoglobin_conc, DIM(mesg->avg_total_hemoglobin_conc))) {
+        rb_hash_aset(rh, rb_str_new2("avg_total_hemoglobin_conc"), fit_uint16_array_to_rb_float_array(mesg->avg_total_hemoglobin_conc, DIM(mesg->avg_total_hemoglobin_conc), 100.0));
+    }
+
+    if (is_valid_uint16_array(mesg->min_total_hemoglobin_conc, DIM(mesg->min_total_hemoglobin_conc))) {
+        rb_hash_aset(rh, rb_str_new2("min_total_hemoglobin_conc"), fit_uint16_array_to_rb_float_array(mesg->min_total_hemoglobin_conc, DIM(mesg->min_total_hemoglobin_conc), 100.0));
+    }
+
+    if (is_valid_uint16_array(mesg->max_total_hemoglobin_conc, DIM(mesg->max_total_hemoglobin_conc))) {
+        rb_hash_aset(rh, rb_str_new2("max_total_hemoglobin_conc"), fit_uint16_array_to_rb_float_array(mesg->max_total_hemoglobin_conc, DIM(mesg->max_total_hemoglobin_conc), 100.0));
+    }
+
+    if (is_valid_uint16_array(mesg->avg_saturated_hemoglobin_percent, DIM(mesg->avg_saturated_hemoglobin_percent))) {
+        rb_hash_aset(rh, rb_str_new2("avg_saturated_hemoglobin_percent"), fit_uint16_array_to_rb_float_array(mesg->avg_saturated_hemoglobin_percent, DIM(mesg->avg_saturated_hemoglobin_percent), 10.0));
+    }
+
+    if (is_valid_uint16_array(mesg->min_saturated_hemoglobin_percent, DIM(mesg->min_saturated_hemoglobin_percent))) {
+        rb_hash_aset(rh, rb_str_new2("min_saturated_hemoglobin_percent"), fit_uint16_array_to_rb_float_array(mesg->min_saturated_hemoglobin_percent, DIM(mesg->min_saturated_hemoglobin_percent), 10.0));
+    }
+
+    if (is_valid_uint16_array(mesg->max_saturated_hemoglobin_percent, DIM(mesg->max_saturated_hemoglobin_percent))) {
+        rb_hash_aset(rh, rb_str_new2("max_saturated_hemoglobin_percent"), fit_uint16_array_to_rb_float_array(mesg->max_saturated_hemoglobin_percent, DIM(mesg->max_saturated_hemoglobin_percent), 10.0));
+    }
 
     if (mesg->event != FIT_EVENT_INVALID) {
         hash_set(rh, mapped_ids, "event", UINT2NUM(mesg->event), MAPID(map_event, mesg->event));
@@ -1293,11 +1355,11 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
     }
 
     if (mesg->avg_temperature != FIT_SINT8_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("avg_temperature"), UINT2NUM(mesg->avg_temperature));
+        rb_hash_aset(rh, rb_str_new2("avg_temperature"), INT2NUM(mesg->avg_temperature));
     }
 
     if (mesg->max_temperature != FIT_SINT8_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("max_temperature"), UINT2NUM(mesg->max_temperature));
+        rb_hash_aset(rh, rb_str_new2("max_temperature"), INT2NUM(mesg->max_temperature));
     }
 
     if (mesg->avg_fractional_cadence != FIT_UINT8_INVALID) {
@@ -1327,6 +1389,7 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->position_lat != FIT_SINT32_INVALID) {
@@ -1433,7 +1496,9 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("cadence"), UINT2NUM(mesg->cadence));
     }
 
-    rb_hash_aset(rh, rb_str_new2("compressed_speed_distance"), fit_uint8_array_to_rb_int_array(mesg->compressed_speed_distance, DIM(mesg->compressed_speed_distance)));
+    if (is_valid_uint8_array(mesg->compressed_speed_distance, DIM(mesg->compressed_speed_distance))) {
+        rb_hash_aset(rh, rb_str_new2("compressed_speed_distance"), fit_uint8_array_to_rb_int_array(mesg->compressed_speed_distance, DIM(mesg->compressed_speed_distance)));
+    }
 
     if (mesg->resistance != FIT_UINT8_INVALID) {
         rb_hash_aset(rh, rb_str_new2("resistance"), UINT2NUM(mesg->resistance));
@@ -1444,10 +1509,12 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
     }
     
     if (mesg->temperature != FIT_SINT8_INVALID) {
-        rb_hash_aset(rh, rb_str_new2("temperature"), UINT2NUM(mesg->temperature));
+        rb_hash_aset(rh, rb_str_new2("temperature"), INT2NUM(mesg->temperature));
     }
     
-    rb_hash_aset(rh, rb_str_new2("speed_1s"), fit_uint8_array_to_rb_float_array(mesg->speed_1s, DIM(mesg->speed_1s), 16.0));
+    if (is_valid_uint8_array(mesg->speed_1s, DIM(mesg->speed_1s))) {
+        rb_hash_aset(rh, rb_str_new2("speed_1s"), fit_uint8_array_to_rb_float_array(mesg->speed_1s, DIM(mesg->speed_1s), 16.0));
+    }
 
     if (mesg->cycles != FIT_UINT8_INVALID) {
         rb_hash_aset(rh, rb_str_new2("cycles"), UINT2NUM(mesg->cycles));
@@ -1518,6 +1585,7 @@ static void pass_event(FIT_EVENT_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->data != FIT_UINT32_INVALID) {
@@ -1572,6 +1640,7 @@ static void pass_device_info(FIT_DEVICE_INFO_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->serial_number != FIT_UINT32Z_INVALID) {
@@ -1734,10 +1803,12 @@ static void pass_schedule(FIT_SCHEDULE_MESG *mesg) {
 
     if (mesg->time_created != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("time_created"), fit_time_to_rb(mesg->time_created));
+        rb_hash_aset(rh, rb_str_new2("time_created_str"), fit_time_to_rb_str(mesg->time_created));
     }
 
     if (mesg->scheduled_time != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("scheduled_time"), fit_time_to_rb(mesg->scheduled_time));
+        rb_hash_aset(rh, rb_str_new2("scheduled_time_str"), fit_time_to_rb_str(mesg->scheduled_time));
     }
 
     if (mesg->manufacturer != FIT_MANUFACTURER_INVALID) {
@@ -1773,6 +1844,7 @@ static void pass_weight_scale_info(FIT_WEIGHT_SCALE_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->weight != FIT_WEIGHT_INVALID) {
@@ -1862,6 +1934,7 @@ static void pass_course_point(FIT_COURSE_POINT_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->position_lat != FIT_SINT32_INVALID) {
@@ -1903,6 +1976,7 @@ static void pass_totals(FIT_TOTALS_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->timer_time != FIT_UINT32_INVALID) {
@@ -1952,6 +2026,7 @@ static void pass_activity(FIT_ACTIVITY_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->total_timer_time != FIT_UINT32_INVALID) {
@@ -1960,6 +2035,7 @@ static void pass_activity(FIT_ACTIVITY_MESG *mesg) {
 
     if (mesg->local_timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("local_timestamp"), fit_time_to_rb(mesg->local_timestamp));
+        rb_hash_aset(rh, rb_str_new2("local_timestamp_str"), fit_time_to_rb_str(mesg->local_timestamp));
     }
 
     if (mesg->num_sessions != FIT_UINT16_INVALID) {
@@ -2142,6 +2218,7 @@ static void pass_blood_pressure(FIT_BLOOD_PRESSURE_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->systolic_pressure != FIT_UINT16_INVALID) {
@@ -2222,6 +2299,7 @@ static void pass_monitoring(FIT_MONITORING_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->distance != FIT_UINT32_INVALID) {
@@ -2238,6 +2316,7 @@ static void pass_monitoring(FIT_MONITORING_MESG *mesg) {
 
     if (mesg->local_timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("local_timestamp"), fit_time_to_rb(mesg->local_timestamp));
+        rb_hash_aset(rh, rb_str_new2("local_timestamp_str"), fit_time_to_rb_str(mesg->local_timestamp));
     }
 
     if (mesg->calories != FIT_UINT16_INVALID) {
@@ -2280,7 +2359,9 @@ static void pass_hrv(FIT_HRV_MESG *mesg) {
 
     VALUE rh = rb_hash_new();
 
-    rb_hash_aset(rh, rb_str_new2("time"), fit_uint16_array_to_rb_float_array(mesg->time, DIM(mesg->time), 1000.0));
+    if (is_valid_uint16_array(mesg->time, DIM(mesg->time))) {
+        rb_hash_aset(rh, rb_str_new2("time"), fit_uint16_array_to_rb_float_array(mesg->time, DIM(mesg->time), 1000.0));
+    }
 
     rb_funcall(cFitHandler, cHrvFun, 1, rh);
 }
@@ -2296,10 +2377,12 @@ static void pass_length(FIT_LENGTH_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->start_time != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("start_time"), fit_time_to_rb(mesg->start_time));
+        rb_hash_aset(rh, rb_str_new2("start_time_str"), fit_time_to_rb_str(mesg->start_time));
     }
 
     if (mesg->total_elapsed_time != FIT_UINT32_INVALID) {
@@ -2334,8 +2417,13 @@ static void pass_length(FIT_LENGTH_MESG *mesg) {
         rb_hash_aset(rh, rb_str_new2("opponent_score"), UINT2NUM(mesg->opponent_score));
     }
 
-    rb_hash_aset(rh, rb_str_new2("stroke_count"), fit_uint16_array_to_rb_int_array(mesg->stroke_count, DIM(mesg->stroke_count)));
-    rb_hash_aset(rh, rb_str_new2("zone_count"), fit_uint16_array_to_rb_int_array(mesg->zone_count, DIM(mesg->zone_count)));
+    if (is_valid_uint16_array(mesg->stroke_count, DIM(mesg->stroke_count))) {
+        rb_hash_aset(rh, rb_str_new2("stroke_count"), fit_uint16_array_to_rb_int_array(mesg->stroke_count, DIM(mesg->stroke_count)));
+    }
+
+    if (is_valid_uint16_array(mesg->zone_count, DIM(mesg->zone_count))) {
+        rb_hash_aset(rh, rb_str_new2("zone_count"), fit_uint16_array_to_rb_int_array(mesg->zone_count, DIM(mesg->zone_count)));
+    }
 
     if (mesg->event != FIT_EVENT_INVALID) {
         hash_set(rh, mapped_ids, "event", UINT2NUM(mesg->event), MAPID(map_event, mesg->event));
@@ -2375,10 +2463,12 @@ static void pass_monitoring_info(FIT_MONITORING_INFO_MESG *mesg) {
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("timestamp"), fit_time_to_rb(mesg->timestamp));
+        rb_hash_aset(rh, rb_str_new2("timestamp_str"), fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->local_timestamp != FIT_DATE_TIME_INVALID) {
         rb_hash_aset(rh, rb_str_new2("local_timestamp"), fit_time_to_rb(mesg->local_timestamp));
+        rb_hash_aset(rh, rb_str_new2("local_timestamp_str"), fit_time_to_rb_str(mesg->local_timestamp));
     }
 
     rb_funcall(cFitHandler, cMonitoringInfoFun, 1, rh);
