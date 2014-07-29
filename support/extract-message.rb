@@ -20,13 +20,17 @@ csv.each do |line|
     if in_enum
         if line[0].nil?
             if line[1].nil?
-                in_enum = false
+                if line[2].nil?
+                    in_enum = false
+                end
             else
-                name = "FIT_#{base_name}_FIELD_NUM_#{line[2].upcase}"
-                value =  "#{line[1]}"
+                if !line[2].nil?
+                    name = "FIT_#{base_name}_FIELD_NUM_#{line[2].upcase}"
+                    value =  "#{line[1]}"
 
-                puts "    #{name} = #{value}"
-                fields[base_name] << { sym: name, short: line[2] }
+                    puts "    #{name} = #{value}"
+                    fields[base_name] << { sym: name, short: line[2] }
+                end
             end
         end
     else
@@ -38,9 +42,9 @@ csv.each do |line|
     end
 end
 
-puts "    @Fit_Fields = {"
+puts "    @@Fit_Fields = {"
 fields.keys.each do |k|
-    puts "        'FIT_MESG_NUM_#{k}' => {"
+    puts "        FIT_MESG_NUM_#{k} => {"
     fields[k].each do |f|
         puts "            #{f[:sym]} => '#{f[:short]}',"
     end
