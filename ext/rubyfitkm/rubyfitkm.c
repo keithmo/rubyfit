@@ -101,27 +101,22 @@ int compare_map(const void *aa, const void *bb) {
     }
 }
 
-const char *id_to_name(ID_MAP *map, size_t count, unsigned int id) {
+VALUE id_to_name(ID_MAP *map, size_t count, unsigned int id) {
     ID_MAP key;
     ID_MAP *found;
 
     key.id = id;
     found = bsearch(&key, map, count, sizeof(ID_MAP), &compare_map);
 
-    return (found == NULL) ? NULL : found->name;
+    return (found == NULL) ? 0 : rb_str_new2(found->name);
 }
 #define MAPID(map, id) id_to_name(map, DIM(map), (unsigned int)id)
 
-void hash_set2(VALUE hash, VALUE _mapped, const char *key, VALUE value, VALUE mapped_value) {
-    rb_hash_aset(hash, rb_str_new2(key), value);
-    rb_hash_aset(_mapped, rb_str_new2(key), mapped_value);
-}
-
-void hash_set(VALUE hash, VALUE _mapped, const char *key, VALUE value, const char *mapped_value) {
+void hash_set(VALUE hash, VALUE _mapped, const char *key, VALUE value, VALUE mapped_value) {
     rb_hash_aset(hash, rb_str_new2(key), value);
 
     if (mapped_value) {
-        rb_hash_aset(_mapped, rb_str_new2(key), rb_str_new2(mapped_value));
+        rb_hash_aset(_mapped, rb_str_new2(key), mapped_value);
     }
 }
 
@@ -143,11 +138,11 @@ static void pass_file_id(FIT_FILE_ID_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->serial_number != FIT_UINT32Z_INVALID) {
-        hash_set(rh, _mapped, "serial_number", UINT2NUM(mesg->serial_number), NULL);
+        hash_set(rh, _mapped, "serial_number", UINT2NUM(mesg->serial_number), 0);
     }
 
     if (mesg->time_created != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "time_created",
+        hash_set(rh, _mapped, "time_created",
             fit_time_to_rb(mesg->time_created),
             fit_time_to_rb_str(mesg->time_created));
     }
@@ -161,11 +156,11 @@ static void pass_file_id(FIT_FILE_ID_MESG *mesg) {
         hash_set(rh, _mapped, "product", UINT2NUM(mesg->product),
             IS_GARMIN(mesg->manufacturer)
                 ? MAPID(map_garmin_product, mesg->product)
-                : NULL);
+                : 0);
     }
 
     if (mesg->number != FIT_UINT16_INVALID) {
-        hash_set(rh, _mapped, "number", UINT2NUM(mesg->number), NULL);
+        hash_set(rh, _mapped, "number", UINT2NUM(mesg->number), 0);
     }
 
     if (mesg->type != FIT_FILE_INVALID) {
@@ -679,13 +674,13 @@ static void pass_goal(FIT_GOAL_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->start_date != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "start_date",
+        hash_set(rh, _mapped, "start_date",
             fit_time_to_rb(mesg->start_date),
             fit_time_to_rb_str(mesg->start_date));
     }
 
     if (mesg->end_date != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "end_date",
+        hash_set(rh, _mapped, "end_date",
             fit_time_to_rb(mesg->end_date),
             fit_time_to_rb_str(mesg->end_date));
     }
@@ -744,13 +739,13 @@ static void pass_session(FIT_SESSION_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->start_time != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "start_time",
+        hash_set(rh, _mapped, "start_time",
             fit_time_to_rb(mesg->start_time),
             fit_time_to_rb_str(mesg->start_time));
     }
@@ -1087,13 +1082,13 @@ static void pass_lap(FIT_LAP_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->start_time != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "start_time",
+        hash_set(rh, _mapped, "start_time",
             fit_time_to_rb(mesg->start_time),
             fit_time_to_rb_str(mesg->start_time));
     }
@@ -1400,7 +1395,7 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -1597,7 +1592,7 @@ static void pass_event(FIT_EVENT_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -1653,7 +1648,7 @@ static void pass_device_info(FIT_DEVICE_INFO_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -1674,7 +1669,7 @@ static void pass_device_info(FIT_DEVICE_INFO_MESG *mesg) {
         hash_set(rh, _mapped, "product", UINT2NUM(mesg->product),
             IS_GARMIN(mesg->manufacturer)
                 ? MAPID(map_garmin_product, mesg->product)
-                : NULL);
+                : 0);
     }
 
     if (mesg->software_version != FIT_UINT16_INVALID) {
@@ -1817,13 +1812,13 @@ static void pass_schedule(FIT_SCHEDULE_MESG *mesg) {
     }
 
     if (mesg->time_created != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "time_created",
+        hash_set(rh, _mapped, "time_created",
             fit_time_to_rb(mesg->time_created),
             fit_time_to_rb_str(mesg->time_created));
     }
 
     if (mesg->scheduled_time != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "scheduled_time",
+        hash_set(rh, _mapped, "scheduled_time",
             fit_time_to_rb(mesg->scheduled_time),
             fit_time_to_rb_str(mesg->scheduled_time));
     }
@@ -1836,7 +1831,7 @@ static void pass_schedule(FIT_SCHEDULE_MESG *mesg) {
         hash_set(rh, _mapped, "product", UINT2NUM(mesg->product),
             IS_GARMIN(mesg->manufacturer)
                 ? MAPID(map_garmin_product, mesg->product)
-                : NULL);
+                : 0);
     }
 
     if (mesg->completed != FIT_BOOL_INVALID) {
@@ -1861,7 +1856,7 @@ static void pass_weight_scale_info(FIT_WEIGHT_SCALE_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -1953,7 +1948,7 @@ static void pass_course_point(FIT_COURSE_POINT_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -1996,7 +1991,7 @@ static void pass_totals(FIT_TOTALS_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -2047,7 +2042,7 @@ static void pass_activity(FIT_ACTIVITY_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -2057,7 +2052,7 @@ static void pass_activity(FIT_ACTIVITY_MESG *mesg) {
     }
 
     if (mesg->local_timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "local_timestamp",
+        hash_set(rh, _mapped, "local_timestamp",
             fit_time_to_rb(mesg->local_timestamp),
             fit_time_to_rb_str(mesg->local_timestamp));
     }
@@ -2241,7 +2236,7 @@ static void pass_blood_pressure(FIT_BLOOD_PRESSURE_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -2323,7 +2318,7 @@ static void pass_monitoring(FIT_MONITORING_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
@@ -2341,7 +2336,7 @@ static void pass_monitoring(FIT_MONITORING_MESG *mesg) {
     }
 
     if (mesg->local_timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "local_timestamp",
+        hash_set(rh, _mapped, "local_timestamp",
             fit_time_to_rb(mesg->local_timestamp),
             fit_time_to_rb_str(mesg->local_timestamp));
     }
@@ -2403,13 +2398,13 @@ static void pass_length(FIT_LENGTH_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->start_time != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "start_time",
+        hash_set(rh, _mapped, "start_time",
             fit_time_to_rb(mesg->start_time),
             fit_time_to_rb_str(mesg->start_time));
     }
@@ -2492,13 +2487,13 @@ static void pass_monitoring_info(FIT_MONITORING_INFO_MESG *mesg) {
     VALUE _mapped = rb_hash_new();
 
     if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "timestamp",
+        hash_set(rh, _mapped, "timestamp",
             fit_time_to_rb(mesg->timestamp),
             fit_time_to_rb_str(mesg->timestamp));
     }
 
     if (mesg->local_timestamp != FIT_DATE_TIME_INVALID) {
-        hash_set2(rh, _mapped, "local_timestamp",
+        hash_set(rh, _mapped, "local_timestamp",
             fit_time_to_rb(mesg->local_timestamp),
             fit_time_to_rb_str(mesg->local_timestamp));
     }
@@ -2524,7 +2519,7 @@ static void pass_slave_device(FIT_SLAVE_DEVICE_MESG *mesg) {
         hash_set(rh, _mapped, "product", UINT2NUM(mesg->product),
             IS_GARMIN(mesg->manufacturer)
                 ? MAPID(map_garmin_product, mesg->product)
-                : NULL);
+                : 0);
     }
 
     rb_hash_aset(rh, rb_str_new2("_mapped"), _mapped);
