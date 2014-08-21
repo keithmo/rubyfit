@@ -77,7 +77,7 @@ typedef struct {
     unsigned int id;
     const char *name;
 } ID_MAP;
-#define MAP(suffix, name) { CONCAT(PREFIX,suffix), (name) }
+#define MAP(sym, name) { (sym), (name) }
 
 typedef struct {
     ID_MAP *map;
