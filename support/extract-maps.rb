@@ -24,7 +24,7 @@ csv.each do |line|
             puts "\n};"
             puts ""
         else
-            print "#{comma}    MAP(#{line[2].upcase}, \"#{line[2]}\")"
+            print "#{comma}    MAP(FIT_#{base_name.upcase}_#{line[2].upcase}, \"#{line[2]}\")"
             comma = ",\n"
         end
     else
@@ -33,8 +33,6 @@ csv.each do |line|
             in_enum = true
             comma = ""
 
-            puts "#undef PREFIX"
-            puts "#define PREFIX FIT_#{base_name.upcase}_"
             puts "ID_MAP map_#{base_name}[] = {"
             maps << "map_#{base_name}"
         end
