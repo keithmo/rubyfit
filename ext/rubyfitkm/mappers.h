@@ -513,7 +513,8 @@ ID_MAP map_wkt_step_duration[] = {
     MAP(REPEAT_UNTIL_POWER_LESS_THAN, "repeat_until_power_less_than"),
     MAP(REPEAT_UNTIL_POWER_GREATER_THAN, "repeat_until_power_greater_than"),
     MAP(POWER_LESS_THAN, "power_less_than"),
-    MAP(POWER_GREATER_THAN, "power_greater_than")
+    MAP(POWER_GREATER_THAN, "power_greater_than"),
+    MAP(REPETITION_TIME, "repetitino_time")
 };
 
 #undef PREFIX
@@ -672,6 +673,10 @@ ID_MAP map_manufacturer[] = {
     MAP(WOODWAY, "woodway"),
     MAP(ELITE, "elite"),
     MAP(NIELSEN_KELLERMAN, "nielsen_kellerman"),
+    MAP(DK_CITY, "dk_city"),
+    MAP(TACX, "tacx"),
+    MAP(DIRECTION_TECHNOLOGY, "direction_technology"),
+    MAP(MAGTONIC, "magtonic"),
     MAP(DEVELOPMENT, "development"),
     MAP(ACTIGRAPHCORP, "actigraphcorp")
 };
@@ -748,6 +753,7 @@ ID_MAP map_garmin_product[] = {
     MAP(VIVO_FIT, "vivo_fit"),
     MAP(VIRB_REMOTE, "virb_remote"),
     MAP(VIVO_KI, "vivo_ki"),
+    MAP(FR15, "fr15"),
     MAP(EDGE510_KOREA, "edge510_korea"),
     MAP(FR620_JAPAN, "fr620_japan"),
     MAP(FR620_CHINA, "fr620_china"),
