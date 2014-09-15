@@ -51,6 +51,7 @@ ID_MAP map_mesg_num[] = {
     MAP(FIT_MESG_NUM_BLOOD_PRESSURE, "blood_pressure"),
     MAP(FIT_MESG_NUM_SPEED_ZONE, "speed_zone"),
     MAP(FIT_MESG_NUM_MONITORING, "monitoring"),
+    MAP(FIT_MESG_NUM_TRAINING_FILE, "training_file"),
     MAP(FIT_MESG_NUM_HRV, "hrv"),
     MAP(FIT_MESG_NUM_LENGTH, "length"),
     MAP(FIT_MESG_NUM_MONITORING_INFO, "monitoring_info"),
@@ -615,7 +616,9 @@ ID_MAP map_manufacturer[] = {
     MAP(FIT_MANUFACTURER_TACX, "tacx"),
     MAP(FIT_MANUFACTURER_DIRECTION_TECHNOLOGY, "direction_technology"),
     MAP(FIT_MANUFACTURER_MAGTONIC, "magtonic"),
+    MAP(FIT_MANUFACTURER_1PARTCARBON, "1partcarbon"),
     MAP(FIT_MANUFACTURER_DEVELOPMENT, "development"),
+    MAP(FIT_MANUFACTURER_HEALTHANDLIFE, "healthandlife"),
     MAP(FIT_MANUFACTURER_ACTIGRAPHCORP, "actigraphcorp")
 };
 

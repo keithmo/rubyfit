@@ -61,6 +61,7 @@ VALUE cFileCreatorFun;
 VALUE cBloodPressureFun;
 VALUE cSpeedZoneFun;
 VALUE cMonitoringFun;
+VALUE cTrainingFileFun;
 VALUE cHrvFun;
 VALUE cLengthFun;
 VALUE cMonitoringInfoFun;
@@ -2186,6 +2187,12 @@ static void pass_record(FIT_RECORD_MESG *mesg) {
             0);
     }
 
+    if (mesg->fractional_cadence != FIT_UINT8_INVALID) {
+        hash_set(rh, _mapped, "fractional_cadence",
+            rb_float_new(mesg->fractional_cadence / 128.0),
+            0);
+    }
+
     if (mesg->device_index != FIT_DEVICE_INDEX_INVALID) {
         hash_set(rh, _mapped, "device_index",
             UINT2NUM(mesg->device_index),
@@ -2254,14 +2261,26 @@ static void pass_event(FIT_EVENT_MESG *mesg) {
     }
 
     if (mesg->front_gear_num != FIT_UINT8Z_INVALID) {
+        hash_set(rh, _mapped, "front_gear_num",
+            UINT2NUM(mesg->front_gear_num),
+            0);
+    }
+
+    if (mesg->front_gear != FIT_UINT8Z_INVALID) {
         hash_set(rh, _mapped, "front_gear",
-            fit_uint8z_array_to_rb_int_array(mesg->front_gear, (long)mesg->front_gear_num),
+            UINT2NUM(mesg->front_gear),
             0);
     }
 
     if (mesg->rear_gear_num != FIT_UINT8Z_INVALID) {
+        hash_set(rh, _mapped, "rear_gear_num",
+            UINT2NUM(mesg->rear_gear_num),
+            0);
+    }
+
+    if (mesg->rear_gear != FIT_UINT8Z_INVALID) {
         hash_set(rh, _mapped, "rear_gear",
-            fit_uint8z_array_to_rb_int_array(mesg->rear_gear, (long)mesg->rear_gear_num),
+            UINT2NUM(mesg->rear_gear),
             0);
     }
 
@@ -3231,6 +3250,57 @@ static void pass_monitoring(FIT_MONITORING_MESG *mesg) {
 }
 
 
+static void pass_training_file(FIT_TRAINING_FILE_MESG *mesg) {
+    if (!rb_respond_to(cFitHandler, cTrainingFileFun)) {
+        return;
+    }
+
+    VALUE rh = rb_hash_new();
+    VALUE _mapped = rb_hash_new();
+
+    if (mesg->timestamp != FIT_DATE_TIME_INVALID) {
+        hash_set(rh, _mapped, "timestamp",
+            fit_time_to_rb(mesg->timestamp),
+            fit_time_to_rb_str(mesg->timestamp));
+    }
+
+    if (mesg->serial_number != FIT_UINT32Z_INVALID) {
+        hash_set(rh, _mapped, "serial_number",
+            UINT2NUM(mesg->serial_number),
+            0);
+    }
+
+    if (mesg->time_created != FIT_DATE_TIME_INVALID) {
+        hash_set(rh, _mapped, "time_created",
+            fit_time_to_rb(mesg->time_created),
+            fit_time_to_rb_str(mesg->time_created));
+    }
+
+    if (mesg->manufacturer != FIT_MANUFACTURER_INVALID) {
+        hash_set(rh, _mapped, "manufacturer",
+            UINT2NUM(mesg->manufacturer),
+            MAPID(map_manufacturer, mesg->manufacturer));
+    }
+
+    if (mesg->product != FIT_UINT16_INVALID) {
+        hash_set(rh, _mapped, "product",
+            UINT2NUM(mesg->product),
+            IS_GARMIN(mesg->manufacturer)
+                ? MAPID(map_garmin_product, mesg->product)
+                : 0);
+    }
+
+    if (mesg->type != FIT_FILE_INVALID) {
+        hash_set(rh, _mapped, "type",
+            UINT2NUM(mesg->type),
+            MAPID(map_file, mesg->type));
+    }
+
+    rb_hash_aset(rh, rb_str_new2("_mapped"), _mapped);
+    rb_funcall(cFitHandler, cTrainingFileFun, 1, rh);
+}
+
+
 static void pass_hrv(FIT_HRV_MESG *mesg) {
     if (!rb_respond_to(cFitHandler, cHrvFun)) {
         return;
@@ -3642,6 +3712,10 @@ static void process_mesg(FIT_UINT16 mesg_num, const FIT_UINT8 *mesg) {
             pass_monitoring((FIT_MONITORING_MESG *)mesg);
             break;
 
+        case FIT_MESG_NUM_TRAINING_FILE:
+            pass_training_file((FIT_TRAINING_FILE_MESG *)mesg);
+            break;
+
         case FIT_MESG_NUM_HRV:
             pass_hrv((FIT_HRV_MESG *)mesg);
             break;
@@ -3750,6 +3824,7 @@ static VALUE init(VALUE self, VALUE handler) {
 	cBloodPressureFun = rb_intern("on_blood_pressure");
 	cSpeedZoneFun = rb_intern("on_speed_zone");
 	cMonitoringFun = rb_intern("on_monitoring");
+    cTrainingFileFun = rb_intern("on_training_file");
 	cHrvFun = rb_intern("on_hrv");
 	cLengthFun = rb_intern("on_length");
 	cMonitoringInfoFun = rb_intern("on_monitoring_info");
