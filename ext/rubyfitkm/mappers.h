@@ -617,8 +617,10 @@ ID_MAP map_manufacturer[] = {
     MAP(FIT_MANUFACTURER_DIRECTION_TECHNOLOGY, "direction_technology"),
     MAP(FIT_MANUFACTURER_MAGTONIC, "magtonic"),
     MAP(FIT_MANUFACTURER_1PARTCARBON, "1partcarbon"),
+    MAP(FIT_MANUFACTURER_INSIDE_RIDE_TECHNOLOGIES, "inside_ride_technologies"),
     MAP(FIT_MANUFACTURER_DEVELOPMENT, "development"),
     MAP(FIT_MANUFACTURER_HEALTHANDLIFE, "healthandlife"),
+    MAP(FIT_MANUFACTURER_LEZYNE, "lezyne"),
     MAP(FIT_MANUFACTURER_ACTIGRAPHCORP, "actigraphcorp")
 };
 
